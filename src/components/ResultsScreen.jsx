@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import './ResultsScreen.css';
 
-export default function ResultsScreen({ questions, userAnswers, meta, onRestart }) {
+export default function ResultsScreen({ questions, userAnswers, meta, onRetest, onNewQuiz }) {
   const [filter, setFilter] = useState('all');
   const [animatedPercent, setAnimatedPercent] = useState(0);
 
@@ -41,12 +41,12 @@ export default function ResultsScreen({ questions, userAnswers, meta, onRestart 
 
   const message =
     percent >= 80
-      ? '🏆 Excellent Performance!'
+      ? 'Excellent Performance!'
       : percent >= 60
-        ? '👍 Good Job! Keep Practicing!'
+        ? 'Good Job! Keep Practicing!'
         : percent >= 40
-          ? '📝 Need More Practice'
-          : "💪 Don't Give Up!";
+          ? 'Need More Practice'
+          : "Don't Give Up! Keep Going!";
 
   // Format time taken
   const formatTime = (seconds) => {
@@ -122,7 +122,7 @@ export default function ResultsScreen({ questions, userAnswers, meta, onRestart 
 
         {/* Detailed Review */}
         <div className="review-section">
-          <h2>📖 Detailed Review</h2>
+          <h2>Detailed Review</h2>
           <div className="review-filters">
             {['all', 'correct', 'wrong', 'skipped'].map((f) => (
               <button
@@ -131,15 +131,15 @@ export default function ResultsScreen({ questions, userAnswers, meta, onRestart 
                 onClick={() => setFilter(f)}
               >
                 {f === 'all' && 'All'}
-                {f === 'correct' && '✓ Correct'}
-                {f === 'wrong' && '✕ Wrong'}
-                {f === 'skipped' && '— Skipped'}
+                {f === 'correct' && 'Correct'}
+                {f === 'wrong' && 'Wrong'}
+                {f === 'skipped' && 'Skipped'}
               </button>
             ))}
           </div>
 
           <div className="review-list">
-            {filteredResults.map((r, idx) => (
+            {filteredResults.map((r) => (
               <div key={r.id} className={`review-card ${r.status}`}>
                 <div className="review-q-header">
                   <span className="review-q-num">Q{r.id}</span>
@@ -165,10 +165,10 @@ export default function ResultsScreen({ questions, userAnswers, meta, onRestart 
                         <strong>{letter}.</strong>
                         <span>{text}</span>
                         {letter === r.answer && (
-                          <span className="opt-tag correct-tag">✓ Correct</span>
+                          <span className="opt-tag correct-tag">Correct Answer</span>
                         )}
                         {r.userAnswer === letter && r.userAnswer !== r.answer && (
-                          <span className="opt-tag wrong-tag">✕ Your answer</span>
+                          <span className="opt-tag wrong-tag">Your Answer</span>
                         )}
                       </div>
                     );
@@ -176,7 +176,7 @@ export default function ResultsScreen({ questions, userAnswers, meta, onRestart 
                 </div>
 
                 <div className="review-explanation">
-                  <strong>💡 Explanation:</strong> {r.explanation}
+                  <strong>Explanation:</strong> {r.explanation}
                 </div>
               </div>
             ))}
@@ -187,10 +187,13 @@ export default function ResultsScreen({ questions, userAnswers, meta, onRestart 
           </div>
         </div>
 
-        {/* Restart */}
+        {/* Action Buttons */}
         <div className="results-footer">
-          <button className="btn btn-primary btn-lg" onClick={onRestart}>
-            🔄 Take Another Quiz
+          <button className="btn btn-primary btn-lg" onClick={onRetest}>
+            Retest — Same Questions
+          </button>
+          <button className="btn btn-secondary btn-lg" onClick={onNewQuiz}>
+            New Test
           </button>
         </div>
       </div>

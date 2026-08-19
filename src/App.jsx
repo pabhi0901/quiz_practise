@@ -34,7 +34,14 @@ function App() {
     setScreen('results');
   };
 
-  const handleRestart = () => {
+  const handleRetest = () => {
+    // Same questions, same config — just reset answers and go back to quiz
+    setUserAnswers(new Array(questions.length).fill(null));
+    setQuizMeta({ timeTaken: 0 });
+    setScreen('quiz');
+  };
+
+  const handleNewQuiz = () => {
     setQuestions([]);
     setUserAnswers([]);
     setQuizMeta({ timeTaken: 0 });
@@ -65,7 +72,8 @@ function App() {
           questions={questions}
           userAnswers={userAnswers}
           meta={quizMeta}
-          onRestart={handleRestart}
+          onRetest={handleRetest}
+          onNewQuiz={handleNewQuiz}
         />
       )}
     </div>

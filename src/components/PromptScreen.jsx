@@ -9,12 +9,12 @@ function generatePromptText(config) {
   return `You are an expert question paper setter for IT company recruitment exams like TCS NQT, Infosys SP & DSE, Wipro NLTH, and similar competitive exams.
 
 Generate exactly ${numQuestions} multiple-choice questions (MCQs) for the following topics:
-📚 Topics: ${topicStr}
+Topics: ${topicStr}
 
-🎯 Difficulty Level(s): ${diffStr}
-📝 Pattern: Questions should follow the pattern and style of previous year papers (PYQs) from TCS NQT and Infosys recruitment exams. Focus on conceptual understanding, tricky options, and real exam-like scenarios.
+Difficulty Level(s): ${diffStr}
+Pattern: Questions should follow the pattern and style of previous year papers (PYQs) from TCS NQT and Infosys recruitment exams. Focus on conceptual understanding, tricky options, and real exam-like scenarios.
 
-⚠️ IMPORTANT RULES:
+IMPORTANT RULES:
 1. Each question MUST have exactly 4 options labeled A, B, C, D.
 2. The "answer" field must contain ONLY the correct option letter (A, B, C, or D).
 3. Provide a brief explanation for each answer.
@@ -23,7 +23,16 @@ Generate exactly ${numQuestions} multiple-choice questions (MCQs) for the follow
 6. Mix the topics proportionally across the ${numQuestions} questions.
 7. Make questions tricky and exam-realistic — not textbook definitions.
 
-📤 OUTPUT FORMAT: Return ONLY valid JSON in the exact format below. No extra text, no markdown, no code fences — just the raw JSON object:
+CRITICAL INSTRUCTIONS — READ CAREFULLY:
+- Your ONLY job is to return the questions in the JSON format specified below.
+- Do NOT start a quiz, test, or interactive session.
+- Do NOT ask me to answer questions one by one.
+- Do NOT display questions in any other format (numbered list, bullets, etc.).
+- Do NOT add any commentary, introduction, or closing remarks.
+- Do NOT wrap the JSON in markdown code fences or backticks.
+- Just output the raw JSON object and NOTHING else.
+
+OUTPUT FORMAT — Return ONLY this JSON structure:
 
 {
   "questions": [
@@ -58,7 +67,7 @@ Generate exactly ${numQuestions} multiple-choice questions (MCQs) for the follow
   ]
 }
 
-Generate all ${numQuestions} questions now. Remember: output ONLY the JSON, nothing else.`;
+Generate all ${numQuestions} questions now. Return ONLY the raw JSON object — no text before it, no text after it, no code fences, no markdown formatting. Do not start an interactive quiz or test session.`;
 }
 
 function parseQuestions(raw) {
@@ -154,11 +163,11 @@ export default function PromptScreen({ config, onBack, onStart }) {
         {/* Prompt Section */}
         <div className="form-card prompt-section">
           <div className="prompt-header">
-            <h3 className="section-title">📋 AI Prompt</h3>
+            <h3 className="section-title">AI Prompt</h3>
             <div className="prompt-actions">
               {copied && <span className="copy-status">✓ Copied!</span>}
               <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
-                📋 Copy Prompt
+                Copy Prompt
               </button>
             </div>
           </div>
@@ -171,7 +180,7 @@ export default function PromptScreen({ config, onBack, onStart }) {
 
         {/* JSON Input Section */}
         <div className="form-card json-section">
-          <h3 className="section-title">📥 Paste AI Response</h3>
+          <h3 className="section-title">Paste AI Response</h3>
           <p className="section-desc">Paste the JSON output you received from the AI below.</p>
           <textarea
             className="json-input-area"
@@ -192,13 +201,13 @@ export default function PromptScreen({ config, onBack, onStart }) {
   ]
 }`}
           />
-          {error && <div className="error-msg">{`❌ ${error}`}</div>}
+          {error && <div className="error-msg">Error: {error}</div>}
           <div className="btn-group">
             <button className="btn btn-secondary" onClick={onBack}>
               ← Back
             </button>
             <button className="btn btn-primary btn-lg" onClick={handleStart}>
-              🚀 Start Quiz
+              Start Test
             </button>
           </div>
         </div>

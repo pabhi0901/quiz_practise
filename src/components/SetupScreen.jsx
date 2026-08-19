@@ -86,14 +86,14 @@ export default function SetupScreen({ onComplete, initialConfig }) {
       <div className="setup-container fade-up">
         {/* Logo */}
         <div className="logo">
-          <h1>⚡ QuizForge</h1>
-          <p>Practice aptitude &amp; CSE subjects — real test experience</p>
+          <h1>Practice Test</h1>
+          <p>Aptitude &amp; CSE subject practice — exam simulation</p>
         </div>
 
         <div className="form-card">
           {/* Topics */}
           <div className="form-group">
-            <label className="form-label">📚 Topics to Revise</label>
+            <label className="form-label">Topics to Revise</label>
 
             {topics.length > 0 && (
               <div className="topic-chips">
@@ -137,7 +137,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
           {/* Questions & Time */}
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">🔢 Number of Questions</label>
+              <label className="form-label">Number of Questions</label>
               <input
                 type="number"
                 className="form-input"
@@ -149,7 +149,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">⏱️ Total Time (minutes)</label>
+              <label className="form-label">Total Time (minutes)</label>
               <input
                 type="number"
                 className="form-input"
@@ -164,7 +164,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
 
           {/* Difficulty */}
           <div className="form-group">
-            <label className="form-label">🎯 Difficulty Levels</label>
+            <label className="form-label">Difficulty Levels</label>
             <div className="diff-group">
               {DIFFICULTIES.map((d) => (
                 <label

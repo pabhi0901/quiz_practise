@@ -244,7 +244,9 @@
 
 /* ─── Footer ─── */
 .results-footer {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
   padding: 2rem 0 3rem;
 }
 

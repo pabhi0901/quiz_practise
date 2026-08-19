@@ -12,6 +12,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
   const [markedReview, setMarkedReview] = useState(() => new Array(questions.length).fill(false));
   const [timeLeft, setTimeLeft] = useState(timeMinutes * 60);
   const [showModal, setShowModal] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   // Enter fullscreen on mount
   useEffect(() => {
@@ -28,10 +29,9 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
 
   // Timer
   useEffect(() => {
-    if (timeLeft <= 0) {
-      handleSubmit();
-      return;
-    }
+    if (submitted) return;
+    if (timeLeft <= 0) return;
+
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -42,15 +42,15 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [submitted]);
 
   // Auto-submit on time up
   useEffect(() => {
-    if (timeLeft === 0) {
-      alert('⏰ Time is up! Your quiz will be submitted now.');
+    if (timeLeft === 0 && !submitted) {
+      alert('Time is up! Your test will be submitted now.');
       handleSubmit();
     }
-  }, [timeLeft]);
+  }, [timeLeft, submitted]);
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback(
@@ -170,6 +170,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
 
   // Submit
   const handleSubmit = () => {
+    setSubmitted(true);
     setShowModal(false);
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
@@ -200,7 +201,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
     <div className="quiz-screen">
       {/* Top Bar */}
       <div className="quiz-topbar">
-        <div className="quiz-title">⚡ QuizForge</div>
+        <div className="quiz-title">Practice Test</div>
         <div className="topbar-right">
           <div className={timerClass}>
             <span className="timer-icon">⏱</span>
@@ -245,10 +246,10 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
           <div className="q-actions">
             <div className="q-actions-left">
               <button className="btn btn-secondary btn-sm" onClick={toggleReview}>
-                {markedReview[currentQ] ? '⚑ Unmark Review' : '⚑ Mark for Review'}
+                {markedReview[currentQ] ? 'Unmark Review' : 'Mark for Review'}
               </button>
               <button className="btn btn-secondary btn-sm" onClick={clearResponse}>
-                ✕ Clear
+                Clear
               </button>
             </div>
             <div className="q-actions-right">
@@ -263,7 +264,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
                 </button>
               ) : (
                 <button className="btn btn-success btn-sm" onClick={() => setShowModal(true)}>
-                  Submit ✓
+                  Submit
                 </button>
               )}
             </div>
@@ -296,7 +297,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
           </div>
           <div className="palette-footer">
             <button className="btn btn-danger btn-block btn-sm" onClick={() => setShowModal(true)}>
-              Submit Quiz
+              Submit Test
             </button>
           </div>
         </div>
@@ -306,8 +307,8 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-box fade-up" onClick={(e) => e.stopPropagation()}>
-            <h3>📝 Submit Quiz?</h3>
-            <p className="modal-desc">Please review your attempt summary before submitting.</p>
+            <h3>Submit Test?</h3>
+            <p className="modal-desc">Review your attempt summary before submitting.</p>
             <div className="modal-stats">
               <div className="modal-stat">
                 <div className="num green">{answeredCount}</div>
