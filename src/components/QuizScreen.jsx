@@ -405,6 +405,13 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
             <button className="btn btn-danger btn-block btn-sm" onClick={() => setShowModal(true)}>
               Submit Test
             </button>
+            <div className="quiz-sidebar-branding">
+              Made by <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer">Abhi</a> 
+              <span className="br-dot">•</span>
+              <a href="https://www.instagram.com/__abhishekpandey_/" target="_blank" rel="noreferrer">IG</a> 
+              <span className="br-dot">/</span>
+              <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer">LI</a>
+            </div>
           </div>
         </div>
       </div>

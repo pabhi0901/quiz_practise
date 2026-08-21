@@ -438,6 +438,22 @@ export default function SetupScreen({ onComplete, initialConfig }) {
         </div>
       </div>
 
+      {/* Footer */}
+      <footer className="dashboard-footer">
+        <div className="footer-left">
+          Made by <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer" className="footer-brand-link">Abhi</a> 
+          <span className="footer-link-divider">|</span>
+          <a href="https://www.instagram.com/__abhishekpandey_/" target="_blank" rel="noreferrer" className="footer-social-link">Instagram</a>
+          <span className="footer-link-divider">•</span>
+          <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer" className="footer-social-link">LinkedIn</a>
+        </div>
+        <div className="footer-right">
+          <a href="mailto:pabhishek7333@gmail.com" className="footer-contact-link">
+            ✉ Contact Us: pabhishek7333@gmail.com
+          </a>
+        </div>
+      </footer>
+
       {/* PARAMETER CONFIGURATION MODAL OVERLAY */}
       {showConfig && (
         <div className="modal-overlay" onClick={() => setShowConfig(false)}>

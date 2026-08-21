@@ -598,6 +598,29 @@ kbd {
   color: var(--text-primary);
 }
 
+.quiz-sidebar-branding {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.quiz-sidebar-branding a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 700;
+  transition: color var(--transition);
+}
+
+.quiz-sidebar-branding a:hover {
+  color: var(--accent);
+}
+
+.quiz-sidebar-branding .br-dot {
+  margin: 0 0.3rem;
+  color: rgba(255, 255, 255, 0.08);
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
   .side-panel {

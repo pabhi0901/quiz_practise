@@ -1014,3 +1014,56 @@
   color: var(--accent);
 }
 
+.dashboard-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  width: 100%;
+  max-width: 1200px;
+  margin: 4.5rem auto 0;
+  padding: 1.75rem 2rem;
+  box-sizing: border-box;
+}
+
+.footer-brand-link {
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.footer-brand-link:hover {
+  color: var(--accent);
+}
+
+.footer-social-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.footer-social-link:hover {
+  color: var(--accent);
+}
+
+.footer-link-divider {
+  margin: 0 0.5rem;
+  color: rgba(255, 255, 255, 0.08);
+}
+
+.footer-contact-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-family: 'Consolas', monospace;
+  transition: color var(--transition);
+}
+
+.footer-contact-link:hover {
+  color: var(--accent);
+}
+
+

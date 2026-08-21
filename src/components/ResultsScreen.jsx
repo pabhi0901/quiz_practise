@@ -410,6 +410,15 @@ export default function ResultsScreen({ questions, userAnswers, meta, config, on
             New Test
           </button>
         </div>
+
+        {/* Footer */}
+        <footer className="results-branding-footer no-print">
+          Made by <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer" className="results-brand-link">Abhi</a> 
+          <span className="results-link-divider">|</span>
+          <a href="https://www.instagram.com/__abhishekpandey_/" target="_blank" rel="noreferrer" className="results-social-link">Instagram</a>
+          <span className="results-link-divider">•</span>
+          <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer" className="results-social-link">LinkedIn</a>
+        </footer>
       </div>
     </div>
   );
