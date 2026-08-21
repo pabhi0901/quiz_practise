@@ -2,32 +2,32 @@
    CSS VARIABLES & RESET
    ═══════════════════════════════════════════════════════════ */
 :root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-tertiary: #1c2333;
-  --bg-card: #1a1f2e;
-  --bg-hover: #252d3d;
-  --border: #30363d;
-  --border-focus: #58a6ff;
-  --text-primary: #e6edf3;
+  --bg-primary: #07090e;
+  --bg-secondary: #0d1117;
+  --bg-tertiary: #161b22;
+  --bg-card: #0d1117;
+  --bg-hover: #1f2631;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-focus: #38bdf8;
+  --text-primary: #f0f6fc;
   --text-secondary: #8b949e;
-  --text-muted: #6e7681;
-  --accent: #58a6ff;
-  --accent-hover: #79b8ff;
-  --accent-glow: rgba(88, 166, 255, 0.15);
-  --success: #3fb950;
-  --success-bg: rgba(63, 185, 80, 0.12);
-  --danger: #f85149;
-  --danger-bg: rgba(248, 81, 73, 0.12);
-  --warning: #d29922;
-  --warning-bg: rgba(210, 153, 34, 0.12);
-  --purple: #bc8cff;
-  --purple-bg: rgba(188, 140, 255, 0.12);
-  --orange: #f0883e;
-  --radius: 8px;
-  --radius-lg: 12px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --transition: 0.2s ease;
+  --text-muted: #57606a;
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-glow: rgba(56, 189, 248, 0.12);
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.08);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.08);
+  --warning: #fbbf24;
+  --warning-bg: rgba(251, 191, 36, 0.08);
+  --purple: #c084fc;
+  --purple-bg: rgba(192, 132, 252, 0.08);
+  --orange: #fb923c;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --transition: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *,
@@ -43,8 +43,10 @@ html {
 }
 
 body {
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-primary);
+  font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;

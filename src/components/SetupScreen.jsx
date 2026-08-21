@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import './SetupScreen.css';
 
 const QUICK_TOPICS = [
@@ -46,6 +46,18 @@ export default function SetupScreen({ onComplete, initialConfig }) {
       setHistory([]);
     }
   }, []);
+
+  // Performance calculations for dashboard
+  const avgScore = useMemo(() => {
+    if (history.length === 0) return 0;
+    const sum = history.reduce((acc, curr) => acc + curr.percent, 0);
+    return Math.round(sum / history.length);
+  }, [history]);
+
+  const bestScore = useMemo(() => {
+    if (history.length === 0) return 0;
+    return Math.max(...history.map(h => h.percent));
+  }, [history]);
 
   const clearHistory = () => {
     localStorage.removeItem('quizHistory');
@@ -111,189 +123,238 @@ export default function SetupScreen({ onComplete, initialConfig }) {
 
   const formatDate = (dateStr) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
   };
 
   return (
     <div className="setup-screen">
-      <div className="setup-container fade-up">
-        {/* Logo */}
-        <div className="logo">
-          <h1>Practice Test</h1>
-          <p>Aptitude &amp; CSE subject practice — exam simulation</p>
+      <div className="setup-grid fade-up">
+        {/* Left Side: Brand and Stats Dashboard */}
+        <div className="setup-left">
+          <div className="brand-header">
+            <div className="brand-logo">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
+            </div>
+            <div className="brand-info">
+              <h1>PRACTICE.TEST</h1>
+              <p>High-Fidelity Assessment Engine</p>
+            </div>
+          </div>
+
+          <div className="intro-text">
+            Prepare for TCS NQT, Infosys SP/DSE, and CS core subjects with real-time test simulations, fine-grained analytics, and adjustable negative marking parameters.
+          </div>
+
+          {/* Quick Analytics Cards */}
+          <div className="stats-row">
+            <div className="stat-card">
+              <span className="stat-title">Simulations</span>
+              <span className="stat-val">{history.length}</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-title">Average Score</span>
+              <span className="stat-val" style={{ color: history.length > 0 ? (avgScore >= 60 ? 'var(--success)' : avgScore >= 40 ? 'var(--warning)' : 'var(--danger)') : 'inherit' }}>
+                {history.length > 0 ? `${avgScore}%` : '—'}
+              </span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-title">Best Performance</span>
+              <span className="stat-val" style={{ color: history.length > 0 ? (bestScore >= 60 ? 'var(--success)' : 'var(--warning)') : 'inherit' }}>
+                {history.length > 0 ? `${bestScore}%` : '—'}
+              </span>
+            </div>
+          </div>
+
+          {/* Simulation History */}
+          <div className="dashboard-history">
+            <div className="history-header-row">
+              <h3>Simulation Logs</h3>
+              {history.length > 0 && (
+                <button className="clear-btn" onClick={clearHistory}>
+                  Clear Logs
+                </button>
+              )}
+            </div>
+
+            {history.length === 0 ? (
+              <div className="history-empty">
+                No past sessions recorded. Complete a simulation to log performance analytics.
+              </div>
+            ) : (
+              <div className="history-table-wrap">
+                <table className="history-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Topics Included</th>
+                      <th>Score</th>
+                      <th>Attempt</th>
+                      <th>Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history
+                      .slice()
+                      .reverse()
+                      .map((h, i) => (
+                        <tr key={i}>
+                          <td>{formatDate(h.date)}</td>
+                          <td className="history-topics" title={h.topics}>
+                            {h.topics}
+                          </td>
+                          <td>
+                            <span
+                              className={`history-score ${h.percent >= 60 ? 'good' : h.percent >= 40 ? 'avg' : 'bad'}`}
+                            >
+                              {h.percent}%
+                            </span>
+                          </td>
+                          <td>
+                            {h.correct}/{h.total}
+                          </td>
+                          <td>{h.timeTaken}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="form-card">
-          {/* Topics */}
-          <div className="form-group">
-            <label className="form-label">Topics to Revise</label>
+        {/* Right Side: Setup Controls */}
+        <div className="setup-right">
+          <div className="config-card">
+            <h2 className="config-title">Test Parameters</h2>
 
-            {topics.length > 0 && (
-              <div className="topic-chips">
-                {topics.map((t, i) => (
-                  <span className="topic-chip" key={i}>
-                    {t}
-                    <span className="remove" onClick={() => removeTopic(i)}>
-                      ×
+            {/* Topics */}
+            <div className="form-group">
+              <label className="form-label">Subject Topics</label>
+
+              {topics.length > 0 && (
+                <div className="topic-chips">
+                  {topics.map((t, i) => (
+                    <span className="topic-chip" key={i}>
+                      {t}
+                      <span className="remove" onClick={() => removeTopic(i)}>
+                        ×
+                      </span>
                     </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="topic-input-row">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Add custom topic (e.g. DBMS, Verbal)..."
+                  value={topicInput}
+                  onChange={(e) => setTopicInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button className="btn btn-secondary btn-sm" onClick={addTopic}>
+                  + Add
+                </button>
+              </div>
+
+              <div className="quick-topics">
+                {QUICK_TOPICS.map((t) => (
+                  <span
+                    className={`quick-topic ${topics.includes(t) ? 'added' : ''}`}
+                    key={t}
+                    onClick={() => quickAdd(t)}
+                  >
+                    {topics.includes(t) ? '✓ ' : ''}
+                    {t}
                   </span>
                 ))}
               </div>
-            )}
-
-            <div className="topic-input-row">
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Type a topic and press Enter or Add"
-                value={topicInput}
-                onChange={(e) => setTopicInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-              />
-              <button className="btn btn-secondary btn-sm" onClick={addTopic}>
-                + Add
-              </button>
             </div>
 
-            <div className="quick-topics">
-              {QUICK_TOPICS.map((t) => (
-                <span
-                  className={`quick-topic ${topics.includes(t) ? 'added' : ''}`}
-                  key={t}
-                  onClick={() => quickAdd(t)}
-                >
-                  {topics.includes(t) ? '✓ ' : ''}
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Questions & Time */}
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Number of Questions</label>
-              <input
-                type="number"
-                className="form-input"
-                min="1"
-                max="200"
-                value={numQuestions}
-                onChange={(e) => setNumQuestions(parseInt(e.target.value) || 0)}
-                placeholder="e.g. 30"
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Total Time (minutes)</label>
-              <input
-                type="number"
-                className="form-input"
-                min="1"
-                max="300"
-                value={time}
-                onChange={(e) => setTime(parseInt(e.target.value) || 0)}
-                placeholder="e.g. 30"
-              />
-            </div>
-          </div>
-
-          {/* Difficulty */}
-          <div className="form-group">
-            <label className="form-label">Difficulty Levels</label>
-            <div className="diff-group">
-              {DIFFICULTIES.map((d) => (
-                <label
-                  className={`diff-chip ${difficulties.includes(d.key) ? 'selected' : ''}`}
-                  key={d.key}
-                  onClick={() => toggleDiff(d.key)}
-                >
-                  <span className="dot" style={{ background: d.color }}></span>
-                  {d.label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Negative Marking */}
-          <div className="form-group">
-            <label className="form-label">Negative Marking</label>
-            <div className="negative-marking-row">
-              <label className="toggle-switch">
+            {/* Questions & Time */}
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Questions</label>
                 <input
-                  type="checkbox"
-                  checked={negativeEnabled}
-                  onChange={(e) => setNegativeEnabled(e.target.checked)}
+                  type="number"
+                  className="form-input"
+                  min="1"
+                  max="200"
+                  value={numQuestions}
+                  onChange={(e) => setNumQuestions(parseInt(e.target.value) || 0)}
+                  placeholder="30"
                 />
-                <span className="toggle-slider"></span>
-              </label>
-              <span className="toggle-label">{negativeEnabled ? 'Enabled' : 'Disabled'}</span>
-              {negativeEnabled && (
-                <select
-                  className="penalty-select"
-                  value={negativePenalty}
-                  onChange={(e) => setNegativePenalty(parseFloat(e.target.value))}
-                >
-                  <option value={0.25}>-0.25 per wrong</option>
-                  <option value={0.33}>-0.33 per wrong</option>
-                  <option value={0.5}>-0.50 per wrong</option>
-                  <option value={1}>-1.00 per wrong</option>
-                </select>
-              )}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Duration (Min)</label>
+                <input
+                  type="number"
+                  className="form-input"
+                  min="1"
+                  max="300"
+                  value={time}
+                  onChange={(e) => setTime(parseInt(e.target.value) || 0)}
+                  placeholder="30"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Submit */}
-          <button className="btn btn-primary btn-lg btn-block" onClick={handleSubmit}>
-            Generate AI Prompt →
-          </button>
+            {/* Difficulty */}
+            <div className="form-group">
+              <label className="form-label">Target Difficulty</label>
+              <div className="diff-group">
+                {DIFFICULTIES.map((d) => (
+                  <label
+                    className={`diff-chip ${difficulties.includes(d.key) ? 'selected' : ''}`}
+                    key={d.key}
+                    onClick={() => toggleDiff(d.key)}
+                  >
+                    <span className="dot" style={{ background: d.color }}></span>
+                    {d.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Negative Marking */}
+            <div className="form-group">
+              <label className="form-label">Negative Evaluation</label>
+              <div className="negative-marking-row">
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={negativeEnabled}
+                    onChange={(e) => setNegativeEnabled(e.target.checked)}
+                  />
+                  <span className="toggle-slider"></span>
+                </label>
+                <span className="toggle-label">{negativeEnabled ? 'Active' : 'Inactive'}</span>
+                {negativeEnabled && (
+                  <select
+                    className="penalty-select"
+                    value={negativePenalty}
+                    onChange={(e) => setNegativePenalty(parseFloat(e.target.value))}
+                  >
+                    <option value={0.25}>-0.25 per incorrect</option>
+                    <option value={0.33}>-0.33 per incorrect</option>
+                    <option value={0.5}>-0.50 per incorrect</option>
+                    <option value={1}>-1.00 per incorrect</option>
+                  </select>
+                )}
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button className="btn btn-primary btn-lg btn-block" onClick={handleSubmit}>
+              Generate Simulation Prompt →
+            </button>
+          </div>
         </div>
-
-        {/* Quiz History */}
-        {history.length > 0 && (
-          <div className="form-card history-card">
-            <div className="history-header">
-              <h3 className="section-title">Recent Attempts</h3>
-              <button className="btn btn-secondary btn-sm" onClick={clearHistory}>
-                Clear
-              </button>
-            </div>
-            <div className="history-table-wrap">
-              <table className="history-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Topics</th>
-                    <th>Score</th>
-                    <th>Questions</th>
-                    <th>Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history
-                    .slice()
-                    .reverse()
-                    .map((h, i) => (
-                      <tr key={i}>
-                        <td>{formatDate(h.date)}</td>
-                        <td className="history-topics">{h.topics}</td>
-                        <td>
-                          <span
-                            className={`history-score ${h.percent >= 60 ? 'good' : h.percent >= 40 ? 'avg' : 'bad'}`}
-                          >
-                            {h.percent}%
-                          </span>
-                        </td>
-                        <td>
-                          {h.correct}/{h.total}
-                        </td>
-                        <td>{h.timeTaken}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
