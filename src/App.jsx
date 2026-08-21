@@ -5,17 +5,28 @@ import QuizScreen from './components/QuizScreen';
 import ResultsScreen from './components/ResultsScreen';
 import './App.css';
 
+function shuffleArray(arr) {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
 function App() {
-  const [screen, setScreen] = useState('setup'); // setup | prompt | quiz | results
+  const [screen, setScreen] = useState('setup');
   const [quizConfig, setQuizConfig] = useState({
     topics: [],
     numQuestions: 30,
     time: 30,
     difficulties: ['medium', 'hard'],
+    negativeMarking: { enabled: false, penalty: 0.25 },
   });
   const [questions, setQuestions] = useState([]);
+  const [originalQuestions, setOriginalQuestions] = useState([]);
   const [userAnswers, setUserAnswers] = useState([]);
-  const [quizMeta, setQuizMeta] = useState({ timeTaken: 0 });
+  const [quizMeta, setQuizMeta] = useState({ timeTaken: 0, timePerQuestion: [] });
 
   const handleSetupComplete = (config) => {
     setQuizConfig(config);
@@ -23,6 +34,7 @@ function App() {
   };
 
   const handleQuestionsLoaded = (parsedQuestions) => {
+    setOriginalQuestions(parsedQuestions);
     setQuestions(parsedQuestions);
     setUserAnswers(new Array(parsedQuestions.length).fill(null));
     setScreen('quiz');
@@ -35,16 +47,18 @@ function App() {
   };
 
   const handleRetest = () => {
-    // Same questions, same config — just reset answers and go back to quiz
-    setUserAnswers(new Array(questions.length).fill(null));
-    setQuizMeta({ timeTaken: 0 });
+    const shuffled = shuffleArray(originalQuestions);
+    setQuestions(shuffled);
+    setUserAnswers(new Array(shuffled.length).fill(null));
+    setQuizMeta({ timeTaken: 0, timePerQuestion: [] });
     setScreen('quiz');
   };
 
   const handleNewQuiz = () => {
     setQuestions([]);
+    setOriginalQuestions([]);
     setUserAnswers([]);
-    setQuizMeta({ timeTaken: 0 });
+    setQuizMeta({ timeTaken: 0, timePerQuestion: [] });
     setScreen('setup');
   };
 
@@ -62,6 +76,7 @@ function App() {
       )}
       {screen === 'quiz' && (
         <QuizScreen
+          key={Date.now()}
           questions={questions}
           timeMinutes={quizConfig.time}
           onSubmit={handleQuizSubmit}
@@ -72,6 +87,7 @@ function App() {
           questions={questions}
           userAnswers={userAnswers}
           meta={quizMeta}
+          config={quizConfig}
           onRetest={handleRetest}
           onNewQuiz={handleNewQuiz}
         />

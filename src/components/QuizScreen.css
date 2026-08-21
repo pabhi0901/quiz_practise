@@ -28,7 +28,15 @@
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+.shortcut-hint {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  opacity: 0.7;
+}
+.shortcut-hint:hover {
+  opacity: 1;
 }
 .quiz-timer {
   display: flex;
@@ -134,8 +142,50 @@
 .q-text {
   font-size: 1.1rem;
   line-height: 1.8;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
   color: var(--text-primary);
+}
+
+/* ─── Code Snippet ─── */
+.code-snippet-block {
+  position: relative;
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.code-lang-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.2rem 0.6rem;
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-bottom-left-radius: var(--radius);
+}
+.code-snippet-pre {
+  background: #0a0e14;
+  padding: 1.25rem 1.5rem;
+  margin: 0;
+  overflow-x: auto;
+  font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #c5d1de;
+  tab-size: 4;
+}
+.code-snippet-pre::-webkit-scrollbar {
+  height: 5px;
+}
+.code-snippet-pre::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+.code-snippet-pre code {
+  font-family: inherit;
 }
 
 /* ─── Options ─── */
@@ -208,7 +258,7 @@
   gap: 0.5rem;
 }
 
-/* ─── Side Panel — Question Palette ─── */
+/* ─── Side Panel ─── */
 .side-panel {
   width: 280px;
   background: var(--bg-secondary);
@@ -259,6 +309,27 @@
 }
 .legend-dot.review-dot {
   background: var(--warning);
+}
+
+/* ─── Topic Filter ─── */
+.palette-filter {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.topic-filter-select {
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+.topic-filter-select:focus {
+  border-color: var(--accent);
 }
 
 .palette-grid {
@@ -315,7 +386,7 @@
   border-top: 1px solid var(--border);
 }
 
-/* ─── Submit Confirmation Modal ─── */
+/* ─── Submit Modal ─── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -372,6 +443,61 @@
 }
 .modal-stat .num.yellow {
   color: var(--warning);
+}
+
+/* ─── Shortcuts Overlay ─── */
+.shortcuts-box {
+  max-width: 400px;
+}
+.shortcuts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+.shortcuts-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.shortcuts-close:hover {
+  color: var(--text-primary);
+}
+.shortcuts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+.shortcut-row span {
+  margin-left: auto;
+  text-align: right;
+}
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  border-radius: 4px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* ─── Responsive ─── */

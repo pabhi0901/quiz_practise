@@ -68,6 +68,11 @@
   font-size: 0.95rem;
   margin-top: 0.5rem;
 }
+.score-penalty {
+  color: var(--warning);
+  font-size: 0.88rem;
+  margin-top: 0.4rem;
+}
 
 /* ─── Stats Grid ─── */
 .results-stats {
@@ -93,10 +98,76 @@
   margin-top: 0.3rem;
 }
 
+/* ─── Breakdowns ─── */
+.breakdown-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.breakdown-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+.breakdown-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.breakdown-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.breakdown-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.breakdown-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.breakdown-score {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+.breakdown-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.breakdown-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.8s ease;
+}
+.breakdown-percent {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
 /* ─── Review Section ─── */
-.review-section h2 {
+.review-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.review-section-header h2 {
   font-size: 1.3rem;
-  margin-bottom: 1.25rem;
 }
 
 .review-filters {
@@ -176,10 +247,59 @@
   color: var(--text-muted);
 }
 
+/* Time Badge */
+.time-badge {
+  padding: 0.15rem 0.45rem;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  font-family: 'Consolas', monospace;
+}
+.time-badge.slow {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 .review-q-text {
   font-size: 1rem;
   margin-bottom: 1rem;
   line-height: 1.7;
+}
+
+/* Code Snippet in review */
+.review-code {
+  margin-bottom: 1rem;
+}
+.code-snippet-block {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.code-lang-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.2rem 0.6rem;
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-bottom-left-radius: var(--radius);
+}
+.code-snippet-pre {
+  background: #0a0e14;
+  padding: 1.25rem 1.5rem;
+  margin: 0;
+  overflow-x: auto;
+  font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #c5d1de;
+  tab-size: 4;
 }
 
 /* ─── Review Options ─── */
@@ -250,9 +370,67 @@
   padding: 2rem 0 3rem;
 }
 
+/* ─── Print / PDF Export ─── */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .results-screen {
+    padding: 0;
+    background: #fff;
+  }
+  .results-container {
+    max-width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .score-hero,
+  .r-stat,
+  .breakdown-card,
+  .review-card {
+    background: #fff !important;
+    border-color: #ddd !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .score-value,
+  .r-num,
+  .breakdown-name {
+    color: #000 !important;
+  }
+  .score-summary,
+  .score-label,
+  .r-label,
+  .breakdown-score,
+  .breakdown-percent,
+  .review-explanation {
+    color: #555 !important;
+  }
+  .review-card.correct {
+    border-left-color: #22c55e !important;
+  }
+  .review-card.wrong {
+    border-left-color: #ef4444 !important;
+  }
+  .breakdown-fill {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .code-snippet-pre {
+    background: #f5f5f5 !important;
+    color: #333 !important;
+  }
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 768px) {
   .results-stats {
     grid-template-columns: 1fr 1fr;
+  }
+  .breakdown-row {
+    grid-template-columns: 1fr;
   }
 }

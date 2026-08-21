@@ -5,6 +5,13 @@ function generatePromptText(config) {
   const { topics, numQuestions, difficulties } = config;
   const diffStr = difficulties.join(', ');
   const topicStr = topics.join(', ');
+  const perTopic = Math.floor(numQuestions / topics.length);
+  const remainder = numQuestions % topics.length;
+
+  let distributionNote = '';
+  if (topics.length > 1) {
+    distributionNote = `\nQUESTION DISTRIBUTION: Distribute questions EVENLY across topics. Each topic should get approximately ${perTopic} questions${remainder > 0 ? ` (assign ${remainder} extra question(s) to any topic)` : ''}. Total must be exactly ${numQuestions}.`;
+  }
 
   return `You are an expert question paper setter for IT company recruitment exams like TCS NQT, Infosys SP & DSE, Wipro NLTH, and similar competitive exams.
 
@@ -13,6 +20,7 @@ Topics: ${topicStr}
 
 Difficulty Level(s): ${diffStr}
 Pattern: Questions should follow the pattern and style of previous year papers (PYQs) from TCS NQT and Infosys recruitment exams. Focus on conceptual understanding, tricky options, and real exam-like scenarios.
+${distributionNote}
 
 IMPORTANT RULES:
 1. Each question MUST have exactly 4 options labeled A, B, C, D.
@@ -20,7 +28,7 @@ IMPORTANT RULES:
 3. Provide a brief explanation for each answer.
 4. Include the topic and difficulty for each question.
 5. Questions should NOT be from Data Structures & Algorithms (DSA).
-6. Mix the topics proportionally across the ${numQuestions} questions.
+6. For programming-related topics (SQL, OOPs, C, Java, Python, etc.), include a "codeSnippet" field with relevant code and set "codeLanguage" to the programming language. For non-programming questions, set these fields to null.
 7. Make questions tricky and exam-realistic — not textbook definitions.
 
 CRITICAL INSTRUCTIONS — READ CAREFULLY:
@@ -38,30 +46,34 @@ OUTPUT FORMAT — Return ONLY this JSON structure:
   "questions": [
     {
       "id": 1,
-      "question": "Your question text here?",
+      "question": "What will be the output of the following code?",
+      "codeSnippet": "SELECT COUNT(*) FROM employees WHERE salary > 50000;",
+      "codeLanguage": "sql",
       "options": {
-        "A": "Option A text",
-        "B": "Option B text",
-        "C": "Option C text",
-        "D": "Option D text"
+        "A": "Returns total rows",
+        "B": "Returns count of employees with salary > 50000",
+        "C": "Syntax error",
+        "D": "Returns NULL"
       },
       "answer": "B",
-      "explanation": "Brief explanation of why B is correct.",
-      "topic": "Topic Name",
+      "explanation": "COUNT(*) counts all rows matching the WHERE condition.",
+      "topic": "SQL",
       "difficulty": "medium"
     },
     {
       "id": 2,
-      "question": "...",
+      "question": "A non-programming question example?",
+      "codeSnippet": null,
+      "codeLanguage": null,
       "options": {
-        "A": "...",
-        "B": "...",
-        "C": "...",
-        "D": "..."
+        "A": "Option A",
+        "B": "Option B",
+        "C": "Option C",
+        "D": "Option D"
       },
       "answer": "A",
-      "explanation": "...",
-      "topic": "...",
+      "explanation": "Explanation here.",
+      "topic": "Quantitative Aptitude",
       "difficulty": "hard"
     }
   ]
@@ -86,7 +98,6 @@ function parseQuestions(raw) {
   return data.questions.map((q, i) => {
     if (!q.question) throw new Error(`Question ${i + 1} is missing the "question" field.`);
 
-    // Normalize options: support both array and object formats
     let opts = {};
     if (Array.isArray(q.options)) {
       const letters = ['A', 'B', 'C', 'D'];
@@ -111,6 +122,8 @@ function parseQuestions(raw) {
     return {
       id: q.id || i + 1,
       question: q.question,
+      codeSnippet: q.codeSnippet || null,
+      codeLanguage: q.codeLanguage || null,
       options: opts,
       answer,
       explanation: q.explanation || 'No explanation provided.',
@@ -151,7 +164,6 @@ export default function PromptScreen({ config, onBack, onStart }) {
   return (
     <div className="prompt-screen">
       <div className="prompt-container fade-up">
-        {/* Step Indicator */}
         <div className="step-indicator">
           <span className="step-num step-done">✓</span>
           <span className="step-text">Setup Complete</span>
@@ -160,7 +172,6 @@ export default function PromptScreen({ config, onBack, onStart }) {
           <span className="step-text">Copy prompt &amp; paste questions</span>
         </div>
 
-        {/* Prompt Section */}
         <div className="form-card prompt-section">
           <div className="prompt-header">
             <h3 className="section-title">AI Prompt</h3>
@@ -178,7 +189,6 @@ export default function PromptScreen({ config, onBack, onStart }) {
           <div className="prompt-box">{promptText}</div>
         </div>
 
-        {/* JSON Input Section */}
         <div className="form-card json-section">
           <h3 className="section-title">Paste AI Response</h3>
           <p className="section-desc">Paste the JSON output you received from the AI below.</p>
@@ -192,6 +202,8 @@ export default function PromptScreen({ config, onBack, onStart }) {
     {
       "id": 1,
       "question": "...",
+      "codeSnippet": "SELECT * FROM ...",
+      "codeLanguage": "sql",
       "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
       "answer": "B",
       "explanation": "...",

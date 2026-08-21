@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './SetupScreen.css';
 
 const QUICK_TOPICS = [
@@ -29,6 +29,28 @@ export default function SetupScreen({ onComplete, initialConfig }) {
   const [numQuestions, setNumQuestions] = useState(initialConfig.numQuestions || 30);
   const [time, setTime] = useState(initialConfig.time || 30);
   const [difficulties, setDifficulties] = useState(initialConfig.difficulties || ['medium', 'hard']);
+  const [negativeEnabled, setNegativeEnabled] = useState(
+    initialConfig.negativeMarking?.enabled || false
+  );
+  const [negativePenalty, setNegativePenalty] = useState(
+    initialConfig.negativeMarking?.penalty || 0.25
+  );
+  const [history, setHistory] = useState([]);
+
+  // Load quiz history
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('quizHistory') || '[]');
+      setHistory(saved);
+    } catch {
+      setHistory([]);
+    }
+  }, []);
+
+  const clearHistory = () => {
+    localStorage.removeItem('quizHistory');
+    setHistory([]);
+  };
 
   const addTopic = () => {
     const val = topicInput.trim();
@@ -71,7 +93,13 @@ export default function SetupScreen({ onComplete, initialConfig }) {
       alert('Please enter a valid time duration.');
       return;
     }
-    onComplete({ topics, numQuestions, time, difficulties });
+    onComplete({
+      topics,
+      numQuestions,
+      time,
+      difficulties,
+      negativeMarking: { enabled: negativeEnabled, penalty: negativePenalty },
+    });
   };
 
   const handleKeyDown = (e) => {
@@ -79,6 +107,11 @@ export default function SetupScreen({ onComplete, initialConfig }) {
       e.preventDefault();
       addTopic();
     }
+  };
+
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -100,7 +133,9 @@ export default function SetupScreen({ onComplete, initialConfig }) {
                 {topics.map((t, i) => (
                   <span className="topic-chip" key={i}>
                     {t}
-                    <span className="remove" onClick={() => removeTopic(i)}>×</span>
+                    <span className="remove" onClick={() => removeTopic(i)}>
+                      ×
+                    </span>
                   </span>
                 ))}
               </div>
@@ -179,11 +214,86 @@ export default function SetupScreen({ onComplete, initialConfig }) {
             </div>
           </div>
 
+          {/* Negative Marking */}
+          <div className="form-group">
+            <label className="form-label">Negative Marking</label>
+            <div className="negative-marking-row">
+              <label className="toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={negativeEnabled}
+                  onChange={(e) => setNegativeEnabled(e.target.checked)}
+                />
+                <span className="toggle-slider"></span>
+              </label>
+              <span className="toggle-label">{negativeEnabled ? 'Enabled' : 'Disabled'}</span>
+              {negativeEnabled && (
+                <select
+                  className="penalty-select"
+                  value={negativePenalty}
+                  onChange={(e) => setNegativePenalty(parseFloat(e.target.value))}
+                >
+                  <option value={0.25}>-0.25 per wrong</option>
+                  <option value={0.33}>-0.33 per wrong</option>
+                  <option value={0.5}>-0.50 per wrong</option>
+                  <option value={1}>-1.00 per wrong</option>
+                </select>
+              )}
+            </div>
+          </div>
+
           {/* Submit */}
           <button className="btn btn-primary btn-lg btn-block" onClick={handleSubmit}>
             Generate AI Prompt →
           </button>
         </div>
+
+        {/* Quiz History */}
+        {history.length > 0 && (
+          <div className="form-card history-card">
+            <div className="history-header">
+              <h3 className="section-title">Recent Attempts</h3>
+              <button className="btn btn-secondary btn-sm" onClick={clearHistory}>
+                Clear
+              </button>
+            </div>
+            <div className="history-table-wrap">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Topics</th>
+                    <th>Score</th>
+                    <th>Questions</th>
+                    <th>Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history
+                    .slice()
+                    .reverse()
+                    .map((h, i) => (
+                      <tr key={i}>
+                        <td>{formatDate(h.date)}</td>
+                        <td className="history-topics">{h.topics}</td>
+                        <td>
+                          <span
+                            className={`history-score ${h.percent >= 60 ? 'good' : h.percent >= 40 ? 'avg' : 'bad'}`}
+                          >
+                            {h.percent}%
+                          </span>
+                        </td>
+                        <td>
+                          {h.correct}/{h.total}
+                        </td>
+                        <td>{h.timeTaken}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

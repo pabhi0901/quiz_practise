@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './QuizScreen.css';
 
 export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
@@ -12,7 +12,19 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
   const [markedReview, setMarkedReview] = useState(() => new Array(questions.length).fill(false));
   const [timeLeft, setTimeLeft] = useState(timeMinutes * 60);
   const [showModal, setShowModal] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [topicFilter, setTopicFilter] = useState('all');
+
+  // Time per question tracking
+  const timePerQ = useRef(new Array(questions.length).fill(0));
+  const lastTimestamp = useRef(Date.now());
+
+  // Get unique topics for filter
+  const uniqueTopics = useMemo(() => {
+    const set = new Set(questions.map((q) => q.topic));
+    return ['all', ...Array.from(set)];
+  }, [questions]);
 
   // Enter fullscreen on mount
   useEffect(() => {
@@ -48,14 +60,34 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
   useEffect(() => {
     if (timeLeft === 0 && !submitted) {
       alert('Time is up! Your test will be submitted now.');
-      handleSubmit();
+      doSubmit();
     }
   }, [timeLeft, submitted]);
+
+  // Track time on current question
+  const recordTimeOnCurrentQ = () => {
+    const now = Date.now();
+    const elapsed = (now - lastTimestamp.current) / 1000;
+    timePerQ.current[currentQ] += elapsed;
+    lastTimestamp.current = now;
+  };
 
   // Keyboard shortcuts
   const handleKeyDown = useCallback(
     (e) => {
       if (showModal) return;
+
+      if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
+        e.preventDefault();
+        setShowShortcuts((prev) => !prev);
+        return;
+      }
+
+      if (showShortcuts) {
+        if (e.key === 'Escape') setShowShortcuts(false);
+        return;
+      }
+
       switch (e.key) {
         case 'ArrowRight':
         case 'n':
@@ -89,9 +121,11 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
         case 'X':
           clearResponse();
           break;
+        default:
+          break;
       }
     },
-    [currentQ, showModal]
+    [currentQ, showModal, showShortcuts]
   );
 
   useEffect(() => {
@@ -111,6 +145,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
 
   // Navigation
   const goToQuestion = (idx) => {
+    recordTimeOnCurrentQ();
     setCurrentQ(idx);
     setVisited((prev) => {
       const copy = [...prev];
@@ -169,13 +204,17 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
         : 'quiz-timer';
 
   // Submit
-  const handleSubmit = () => {
+  const doSubmit = () => {
+    recordTimeOnCurrentQ();
     setSubmitted(true);
     setShowModal(false);
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
-    onSubmit(answers, { timeTaken: totalTime - timeLeft });
+    onSubmit(answers, {
+      timeTaken: totalTime - timeLeft,
+      timePerQuestion: [...timePerQ.current],
+    });
   };
 
   // Stats for modal
@@ -197,12 +236,25 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
     return cls;
   };
 
+  // Filtered indices for palette
+  const paletteIndices = questions
+    .map((q, i) => ({ topic: q.topic, idx: i }))
+    .filter((item) => topicFilter === 'all' || item.topic === topicFilter)
+    .map((item) => item.idx);
+
   return (
     <div className="quiz-screen">
       {/* Top Bar */}
       <div className="quiz-topbar">
         <div className="quiz-title">Practice Test</div>
         <div className="topbar-right">
+          <button
+            className="btn btn-secondary btn-sm shortcut-hint"
+            onClick={() => setShowShortcuts(true)}
+            title="Keyboard Shortcuts"
+          >
+            ? Shortcuts
+          </button>
           <div className={timerClass}>
             <span className="timer-icon">⏱</span>
             <span>{formatTime(timeLeft)}</span>
@@ -214,7 +266,6 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
       <div className="quiz-body">
         {/* Question Panel */}
         <div className="question-panel">
-          {/* Question Header */}
           <div className="q-header">
             <div className="q-number">{currentQ + 1}</div>
             <div className="q-meta">
@@ -225,8 +276,19 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
             </div>
           </div>
 
-          {/* Question Text */}
           <div className="q-text">{q.question}</div>
+
+          {/* Code Snippet */}
+          {q.codeSnippet && (
+            <div className="code-snippet-block">
+              {q.codeLanguage && (
+                <div className="code-lang-tag">{q.codeLanguage.toUpperCase()}</div>
+              )}
+              <pre className="code-snippet-pre">
+                <code>{q.codeSnippet}</code>
+              </pre>
+            </div>
+          )}
 
           {/* Options */}
           <div className="options-list">
@@ -271,7 +333,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
           </div>
         </div>
 
-        {/* Side Panel — Question Palette */}
+        {/* Side Panel */}
         <div className="side-panel">
           <div className="palette-header">Question Palette</div>
           <div className="palette-legend">
@@ -288,8 +350,26 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
               <div className="legend-dot review-dot"></div> Marked Review
             </div>
           </div>
+
+          {/* Topic Filter */}
+          {uniqueTopics.length > 2 && (
+            <div className="palette-filter">
+              <select
+                className="topic-filter-select"
+                value={topicFilter}
+                onChange={(e) => setTopicFilter(e.target.value)}
+              >
+                {uniqueTopics.map((t) => (
+                  <option key={t} value={t}>
+                    {t === 'all' ? 'All Topics' : t}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="palette-grid">
-            {questions.map((_, i) => (
+            {paletteIndices.map((i) => (
               <button key={i} className={getPaletteClass(i)} onClick={() => goToQuestion(i)}>
                 {i + 1}
               </button>
@@ -331,9 +411,53 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
               <button className="btn btn-secondary" onClick={() => setShowModal(false)}>
                 ← Go Back
               </button>
-              <button className="btn btn-danger" onClick={handleSubmit}>
+              <button className="btn btn-danger" onClick={doSubmit}>
                 Submit Now
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Keyboard Shortcuts Overlay */}
+      {showShortcuts && (
+        <div className="modal-overlay" onClick={() => setShowShortcuts(false)}>
+          <div className="modal-box shortcuts-box fade-up" onClick={(e) => e.stopPropagation()}>
+            <div className="shortcuts-header">
+              <h3>Keyboard Shortcuts</h3>
+              <button className="shortcuts-close" onClick={() => setShowShortcuts(false)}>
+                ×
+              </button>
+            </div>
+            <div className="shortcuts-grid">
+              <div className="shortcut-row">
+                <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd>
+                <span>Select option</span>
+              </div>
+              <div className="shortcut-row">
+                <kbd>←</kbd> or <kbd>P</kbd>
+                <span>Previous question</span>
+              </div>
+              <div className="shortcut-row">
+                <kbd>→</kbd> or <kbd>N</kbd>
+                <span>Next question</span>
+              </div>
+              <div className="shortcut-row">
+                <kbd>R</kbd>
+                <span>Mark / Unmark for review</span>
+              </div>
+              <div className="shortcut-row">
+                <kbd>X</kbd>
+                <span>Clear response</span>
+              </div>
+              <div className="shortcut-row">
+                <kbd>?</kbd>
+                <span>Toggle this help</span>
+              </div>
+              <div className="shortcut-row">
+                <kbd>Esc</kbd>
+                <span>Close overlay</span>
+              </div>
             </div>
           </div>
         </div>
