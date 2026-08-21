@@ -222,7 +222,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
               />
             ) : (
               <span className="profile-name-editable" onClick={() => setIsEditingName(true)} title="Click to rename">
-                {userName} <span className="edit-pencil-icon">✎</span>
+                {userName}
               </span>
             )}
           </div>
