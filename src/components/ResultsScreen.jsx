@@ -170,6 +170,8 @@ export default function ResultsScreen({ questions, userAnswers, meta, config, on
 
   return (
     <div className="results-screen">
+      <div className="glow-blob blob-1"></div>
+      <div className="glow-blob blob-2"></div>
       <div className="results-container fade-up">
         {/* Score Hero */}
         <div className="score-hero">

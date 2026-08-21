@@ -598,7 +598,7 @@ export default function PromptScreen({ config, onBack, onStart }) {
                     onClick={() => handleStart(false)}
                     disabled={validationLogs.syntax !== 'success' || validationLogs.pattern !== 'success'}
                   >
-                    Run Simulation ⚡
+                    Start Test
                   </button>
                 </div>
               )}

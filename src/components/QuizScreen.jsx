@@ -258,6 +258,8 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
 
   return (
     <div className="quiz-screen">
+      <div className="glow-blob blob-1"></div>
+      <div className="glow-blob blob-2"></div>
       {/* Top Bar */}
       <div className="quiz-topbar">
         <div className="quiz-title-section">

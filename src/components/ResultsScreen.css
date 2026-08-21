@@ -6,9 +6,11 @@
   flex-direction: column;
   align-items: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 3rem 2rem;
   overflow-y: auto;
   background: var(--bg-primary);
+  position: relative;
+  overflow-x: hidden;
 }
 
 .results-container {
@@ -19,11 +21,12 @@
 /* ─── Score Hero ─── */
 .score-hero {
   text-align: center;
-  padding: 2.5rem;
-  background: var(--bg-secondary);
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.015);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   margin-bottom: 2rem;
+  box-shadow: var(--shadow);
 }
 .score-ring {
   width: 150px;
@@ -38,7 +41,7 @@
 }
 .bg-ring {
   fill: none;
-  stroke: var(--bg-tertiary);
+  stroke: rgba(255, 255, 255, 0.03);
   stroke-width: 8;
 }
 .progress-ring {
@@ -57,11 +60,15 @@
 }
 .score-value {
   font-size: 2.2rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-family: 'Consolas', monospace;
 }
 .score-label {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .score-summary {
   color: var(--text-secondary);
@@ -83,39 +90,68 @@
 }
 .r-stat {
   padding: 1.25rem;
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.015);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   text-align: center;
+  transition: all var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+.r-stat::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.r-stat:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.03);
+}
+.r-stat:hover::after {
+  opacity: 1;
 }
 .r-num {
   font-size: 1.8rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-family: 'Consolas', monospace;
 }
 .r-label {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
   margin-top: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* ─── Breakdowns ─── */
 .breakdown-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-bottom: 2rem;
 }
 .breakdown-card {
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.015);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: 1.75rem;
+  box-shadow: var(--shadow);
 }
 .breakdown-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-bottom: 1.25rem;
   color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .breakdown-list {
   display: flex;
@@ -125,26 +161,28 @@
 .breakdown-item {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.35rem;
 }
 .breakdown-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 .breakdown-name {
-  font-weight: 600;
-  color: var(--text-primary);
+  font-weight: 700;
+  color: var(--text-secondary);
 }
 .breakdown-score {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-family: 'Consolas', monospace;
 }
 .breakdown-bar {
   width: 100%;
   height: 6px;
-  background: var(--bg-tertiary);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -157,6 +195,7 @@
   font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 600;
+  font-family: 'Consolas', monospace;
 }
 
 /* ─── Review Section ─── */
@@ -164,37 +203,45 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-top: 1px dashed var(--border);
+  padding-top: 2rem;
 }
 .review-section-header h2 {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
 }
 
 .review-filters {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
 }
 .review-filter-btn {
-  padding: 0.4rem 1rem;
-  background: var(--bg-tertiary);
+  padding: 0.3rem 0.85rem;
+  background: rgba(255, 255, 255, 0.015);
   border: 1px solid var(--border);
-  border-radius: 100px;
+  border-radius: 4px;
   color: var(--text-secondary);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition);
   font-family: inherit;
 }
 .review-filter-btn:hover {
-  border-color: var(--accent);
+  border-color: rgba(56, 189, 248, 0.3);
   color: var(--accent);
+  background: var(--accent-glow);
 }
 .review-filter-btn.active {
   background: var(--accent-glow);
   border-color: var(--accent);
   color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 /* ─── Review Cards ─── */

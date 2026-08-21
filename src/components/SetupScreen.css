@@ -110,7 +110,41 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-primary);
-  user-select: none;
+}
+
+.profile-name-editable {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: color var(--transition);
+}
+
+.profile-name-editable:hover {
+  color: var(--accent);
+}
+
+.edit-pencil-icon {
+  font-size: 0.72rem;
+  opacity: 0.5;
+  transition: opacity var(--transition);
+}
+
+.profile-name-editable:hover .edit-pencil-icon {
+  opacity: 1;
+}
+
+.name-edit-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--accent);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  outline: none;
+  padding: 0;
+  width: 80px;
 }
 
 .avatar-placeholder {

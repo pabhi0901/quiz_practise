@@ -20,6 +20,10 @@ const DIFFICULTIES = [
 ];
 
 export default function SetupScreen({ onComplete, initialConfig }) {
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem('userName') || 'Radhe';
+  });
+  const [isEditingName, setIsEditingName] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [topics, setTopics] = useState(initialConfig.topics || []);
   const [topicInput, setTopicInput] = useState('');
@@ -33,6 +37,11 @@ export default function SetupScreen({ onComplete, initialConfig }) {
     initialConfig.negativeMarking?.penalty || 0.25
   );
   const [history, setHistory] = useState([]);
+
+  const updateName = (val) => {
+    setUserName(val);
+    localStorage.setItem('userName', val);
+  };
 
   // Load quiz history
   useEffect(() => {
@@ -185,8 +194,26 @@ export default function SetupScreen({ onComplete, initialConfig }) {
         </div>
         <div className="nav-right">
           <div className="profile-badge">
-            <div className="avatar-placeholder">A</div>
-            <span>Aditya</span>
+            <div className="avatar-placeholder">
+              {userName ? userName.charAt(0).toUpperCase() : 'R'}
+            </div>
+            {isEditingName ? (
+              <input
+                type="text"
+                className="name-edit-input"
+                value={userName}
+                onChange={(e) => updateName(e.target.value)}
+                onBlur={() => setIsEditingName(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') setIsEditingName(false);
+                }}
+                autoFocus
+              />
+            ) : (
+              <span className="profile-name-editable" onClick={() => setIsEditingName(true)} title="Click to rename">
+                {userName} <span className="edit-pencil-icon">✎</span>
+              </span>
+            )}
           </div>
         </div>
       </nav>
@@ -198,7 +225,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
           <div className="hero-row">
             {/* Hero text */}
             <div className="hero-content">
-              <div className="welcome-tag">Welcome back, Aditya 👋</div>
+              <div className="welcome-tag">Welcome back, {userName} 👋</div>
               <h1 className="hero-title">
                 Practice Smarter.<br />
                 <span className="gradient-text">Score Higher.</span>
