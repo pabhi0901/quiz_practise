@@ -479,27 +479,27 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
           <div className="side-panel-footer">
             <div className="progress-section">
               <div className="progress-label-row">
-                <span className="progress-lbl">Progress</span>
-                <span className="progress-pct-val">{Math.round((answeredCount / questions.length) * 100)}%</span>
+                <span className="progress-lbl">Test Progress</span>
+                <span className="progress-pct-val">{Math.round((answeredCount / questions.length) * 100)}% Completed</span>
               </div>
               <div className="progress-bar-container">
                 <div className="progress-bar-fill" style={{ width: `${Math.round((answeredCount / questions.length) * 100)}%` }}></div>
               </div>
             </div>
 
-            <div className="stats-counters-grid">
-              <div className="counter-item card-green">
-                <span className="count-lbl">Ans:</span>
-                <span className="count-val">{answeredCount}</span>
-              </div>
-              <div className="counter-item card-red">
-                <span className="count-lbl">Unans:</span>
-                <span className="count-val">{questions.length - answeredCount}</span>
-              </div>
-              <div className="counter-item card-yellow">
-                <span className="count-lbl">Marked:</span>
-                <span className="count-val">{reviewCount}</span>
-              </div>
+            <div className="stats-counters-bar">
+              <span className="stat-badge green">
+                <span className="status-dot green-dot"></span>
+                {answeredCount} Ans
+              </span>
+              <span className="stat-badge red">
+                <span className="status-dot red-dot"></span>
+                {questions.length - answeredCount} Unans
+              </span>
+              <span className="stat-badge yellow">
+                <span className="status-dot yellow-dot"></span>
+                {reviewCount} Marked
+              </span>
             </div>
 
             <div className="palette-footer-actions">
@@ -510,19 +510,6 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
                 </svg>
                 Submit Test
               </button>
-            </div>
-          </div>
-
-          <div className="side-panel-bottom-credits">
-            <div className="submission-disclaimer">
-              You can submit the test anytime before the timer ends.
-            </div>
-            <div className="quiz-sidebar-branding">
-              Made by <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer">Abhi</a> 
-              <span className="br-dot">•</span>
-              <a href="https://www.instagram.com/__abhishekpandey_/" target="_blank" rel="noreferrer">Instagram</a> 
-              <span className="br-dot">/</span>
-              <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer">LinkedIn</a>
             </div>
           </div>
         </div>
