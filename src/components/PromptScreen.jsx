@@ -35,6 +35,8 @@ IMPORTANT RULES:
 10. Do not make questions difficult merely by using unnecessarily large numbers or lengthy calculations. Difficulty should come from reasoning, concept interaction, ambiguity resolution, or carefully designed distractors.
 11. Before producing the final JSON, internally perform a second independent verification of every question. For numerical questions, recompute using a different method where possible. For code questions, trace execution statement-by-statement. For reasoning questions, test every option against the given conditions. For SQL questions, evaluate the query semantics including NULL behavior, duplicates, grouping, and join cardinality.
 12. Use actual/reported PYQs as a pattern reference when available. If web access is available, research recent TCS NQT and Infosys recruitment PYQs before generation. Do not claim a generated question is a PYQ unless it has been verified as one.
+13. Ensure broad subtopic coverage within each topic. Do not generate more than 2 questions testing essentially the same underlying concept/pattern.
+14. Hard questions should resemble difficult recruitment-test questions: the difficulty should arise from combining concepts, interpreting conditions, identifying traps, or tracing non-obvious behavior—not from obscure facts.
 
 JSON STRING ESCAPING — EXTREMELY IMPORTANT:
 - The output MUST be valid, parseable JSON.
