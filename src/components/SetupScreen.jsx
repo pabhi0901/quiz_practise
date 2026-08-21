@@ -1,19 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import './SetupScreen.css';
 
-const QUICK_TOPICS = [
-  'Quantitative Aptitude',
-  'Logical Reasoning',
-  'Verbal Ability',
-  'DBMS',
-  'OS',
-  'CN',
-  'OOPs',
-  'Software Engineering',
-  'SQL',
-  'Computer Architecture',
-  'Compiler Design',
-  'TOC',
+const TOPIC_CATEGORIES = [
+  {
+    name: 'Aptitude & Reasoning',
+    topics: ['Quantitative Aptitude', 'Logical Reasoning', 'Verbal Ability']
+  },
+  {
+    name: 'Core CS Subjects',
+    topics: ['DBMS', 'OS', 'CN', 'OOPs', 'Software Engineering', 'SQL', 'Computer Architecture', 'Compiler Design', 'TOC']
+  }
 ];
 
 const DIFFICULTIES = [
@@ -128,6 +124,8 @@ export default function SetupScreen({ onComplete, initialConfig }) {
 
   return (
     <div className="setup-screen">
+      <div className="glow-blob blob-1"></div>
+      <div className="glow-blob blob-2"></div>
       <div className="setup-grid fade-up">
         {/* Left Side: Brand and Stats Dashboard */}
         <div className="setup-left">
@@ -262,16 +260,23 @@ export default function SetupScreen({ onComplete, initialConfig }) {
                 </button>
               </div>
 
-              <div className="quick-topics">
-                {QUICK_TOPICS.map((t) => (
-                  <span
-                    className={`quick-topic ${topics.includes(t) ? 'added' : ''}`}
-                    key={t}
-                    onClick={() => quickAdd(t)}
-                  >
-                    {topics.includes(t) ? '✓ ' : ''}
-                    {t}
-                  </span>
+              <div className="category-group-container">
+                {TOPIC_CATEGORIES.map((cat) => (
+                  <div key={cat.name} className="category-group">
+                    <span className="category-group-title">{cat.name}</span>
+                    <div className="quick-topics">
+                      {cat.topics.map((t) => (
+                        <span
+                          className={`quick-topic ${topics.includes(t) ? 'added' : ''}`}
+                          key={t}
+                          onClick={() => quickAdd(t)}
+                        >
+                          {topics.includes(t) ? '✓ ' : ''}
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
