@@ -199,6 +199,98 @@ function fixFieldQuotes(jsonStr, fieldName, nextFieldName) {
   return result.join('');
 }
 
+function formatCodeSnippet(code, lang) {
+  if (!code) return code;
+
+  // Normalize string: replace literal backslash-n and backslash-t
+  let cleaned = code.replace(/\\n/g, '\n').replace(/\\t/g, '    ');
+
+  // If the code snippet already has multiple lines, respect the existing formatting
+  if ((cleaned.match(/\n/g) || []).length >= 2) {
+    return cleaned;
+  }
+
+  const l = (lang || '').toLowerCase();
+
+  // C, C++, Java, JavaScript Formatter
+  if (['c', 'cpp', 'java', 'javascript', 'js'].includes(l)) {
+    let formatted = '';
+    let indent = 0;
+    let inString = false;
+    let stringChar = null;
+
+    for (let i = 0; i < cleaned.length; i++) {
+      const char = cleaned[i];
+
+      // Handle string literals to prevent splitting inside quotes
+      if ((char === '"' || char === "'") && cleaned[i - 1] !== '\\') {
+        if (!inString) {
+          inString = true;
+          stringChar = char;
+        } else if (char === stringChar) {
+          inString = false;
+          stringChar = null;
+        }
+      }
+
+      if (inString) {
+        formatted += char;
+        continue;
+      }
+
+      if (char === '{') {
+        formatted += ' {\n' + ' '.repeat((indent + 1) * 4);
+        indent++;
+      } else if (char === '}') {
+        indent = Math.max(0, indent - 1);
+        formatted = formatted.trimEnd();
+        formatted += '\n' + ' '.repeat(indent * 4) + '}';
+        if (cleaned[i + 1] !== ';') {
+          formatted += '\n' + ' '.repeat(indent * 4);
+        }
+      } else if (char === ';') {
+        formatted += ';\n' + ' '.repeat(indent * 4);
+      } else {
+        // Prevent duplicate consecutive spaces
+        if (char === ' ' && formatted[formatted.length - 1] === ' ') {
+          continue;
+        }
+        formatted += char;
+      }
+    }
+
+    return formatted
+      .split('\n')
+      .map(line => line.trimEnd())
+      .filter((line, idx, arr) => line !== '' || (idx > 0 && arr[idx - 1] !== ''))
+      .join('\n')
+      .trim();
+  }
+
+  // SQL Formatter
+  if (l === 'sql') {
+    const keywords = [
+      'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING',
+      'ORDER BY', 'LIMIT', 'LEFT JOIN', 'RIGHT JOIN',
+      'INNER JOIN', 'JOIN', 'UNION', 'ON'
+    ];
+
+    let temp = cleaned;
+    keywords.forEach(keyword => {
+      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+      temp = temp.replace(regex, (match) => `\n${match.toUpperCase()}`);
+    });
+
+    return temp
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .join('\n');
+  }
+
+  return cleaned;
+}
+
 function parseQuestions(raw) {
   let jsonStr = raw.trim();
 
@@ -272,10 +364,9 @@ function parseQuestions(raw) {
       }
     }
 
-    let codeSnippet = q.codeSnippet || null;
-    if (typeof codeSnippet === 'string') {
-      codeSnippet = codeSnippet.replace(/\\n/g, '\n').replace(/\\t/g, '    ');
-    }
+    const codeSnippet = q.codeSnippet
+      ? formatCodeSnippet(q.codeSnippet, q.codeLanguage)
+      : null;
 
     return {
       id: q.id || i + 1,
