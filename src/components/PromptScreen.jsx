@@ -31,7 +31,7 @@ IMPORTANT RULES:
 6. For programming-related topics (SQL, OOPs, C, Java, Python, etc.), include a "codeSnippet" field with relevant code and set "codeLanguage" to the programming language. For non-programming questions, set these fields to null.
 7. Make questions tricky and exam-realistic — not textbook definitions.
 8. At least 60% of questions should contain a plausible distractor based on a common candidate mistake, such as ignoring successive percentage effects, confusing WHERE and HAVING, confusing overloading with overriding, mishandling NULL in SQL, or applying an incorrect logical inference.
-9. At least 25–25% of questions should combine two related concepts rather than testing a single isolated formula or definition.
+9. 25% - 35% of questions should combine two related concepts rather than testing a single isolated formula or definition.
 10. Do not make questions difficult merely by using unnecessarily large numbers or lengthy calculations. Difficulty should come from reasoning, concept interaction, ambiguity resolution, or carefully designed distractors.
 11. Before producing the final JSON, internally perform a second independent verification of every question. For numerical questions, recompute using a different method where possible. For code questions, trace execution statement-by-statement. For reasoning questions, test every option against the given conditions. For SQL questions, evaluate the query semantics including NULL behavior, duplicates, grouping, and join cardinality.
 12. Use actual/reported PYQs as a pattern reference when available. If web access is available, research recent TCS NQT and Infosys recruitment PYQs before generation. Do not claim a generated question is a PYQ unless it has been verified as one.
