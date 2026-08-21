@@ -27,9 +27,9 @@ export default function SetupScreen({ onComplete, initialConfig }) {
   const [showConfig, setShowConfig] = useState(false);
   const [topics, setTopics] = useState(initialConfig.topics || []);
   const [topicInput, setTopicInput] = useState('');
-  const [numQuestions, setNumQuestions] = useState(initialConfig.numQuestions || 30);
-  const [time, setTime] = useState(initialConfig.time || 30);
-  const [difficulties, setDifficulties] = useState(initialConfig.difficulties || ['medium', 'hard']);
+  const [numQuestions, setNumQuestions] = useState(initialConfig.numQuestions || '');
+  const [time, setTime] = useState(initialConfig.time || '');
+  const [difficulties, setDifficulties] = useState(initialConfig.difficulties || []);
   const [negativeEnabled, setNegativeEnabled] = useState(
     initialConfig.negativeMarking?.enabled || false
   );
@@ -225,7 +225,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
           <div className="hero-row">
             {/* Hero text */}
             <div className="hero-content">
-              <div className="welcome-tag">Welcome back, {userName} 👋</div>
+              <div className="welcome-tag">Welcome back, {userName} 🙏</div>
               <h1 className="hero-title">
                 Practice Smarter.<br />
                 <span className="gradient-text">Score Higher.</span>
@@ -235,7 +235,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
               </p>
               <div className="hero-actions">
                 <button className="btn btn-primary" onClick={launchCustomTest}>
-                  Start Simulation →
+                  Start Test →
                 </button>
                 <button className="btn btn-secondary" onClick={() => {
                   const el = document.getElementById('history-section');

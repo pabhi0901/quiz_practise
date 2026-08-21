@@ -18,9 +18,9 @@ function App() {
   const [screen, setScreen] = useState('setup');
   const [quizConfig, setQuizConfig] = useState({
     topics: [],
-    numQuestions: 30,
-    time: 30,
-    difficulties: ['medium', 'hard'],
+    numQuestions: '',
+    time: '',
+    difficulties: [],
     negativeMarking: { enabled: false, penalty: 0.25 },
   });
   const [questions, setQuestions] = useState([]);
