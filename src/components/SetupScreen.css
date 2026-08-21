@@ -97,6 +97,32 @@
 .nav-right {
   display: flex;
   align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-credits {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.nav-credits a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition);
+}
+
+.nav-credits a:hover {
+  color: var(--accent);
+}
+
+.credits-divider {
+  margin: 0 0.4rem;
+  color: rgba(255, 255, 255, 0.08);
 }
 
 .profile-badge {
@@ -1065,5 +1091,23 @@
 .footer-contact-link:hover {
   color: var(--accent);
 }
+
+.nav-credits-insta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+
+.nav-credits-insta:hover {
+  color: var(--accent);
+}
+
+.insta-svg-icon {
+  display: block;
+}
+
+
 
 

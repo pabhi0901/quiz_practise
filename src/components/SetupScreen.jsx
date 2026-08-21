@@ -193,6 +193,17 @@ export default function SetupScreen({ onComplete, initialConfig }) {
           </div>
         </div>
         <div className="nav-right">
+          <div className="nav-credits">
+            Made by <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer" className="nav-credits-author">Abhi</a>
+            <span className="credits-divider">|</span>
+            <a href="https://www.instagram.com/__abhishekpandey_/" target="_blank" rel="noreferrer" className="nav-credits-insta" title="Instagram">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="insta-svg-icon">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
+          </div>
           <div className="profile-badge">
             <div className="avatar-placeholder">
               {userName ? userName.charAt(0).toUpperCase() : 'R'}
