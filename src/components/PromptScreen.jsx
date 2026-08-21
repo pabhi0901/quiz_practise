@@ -31,6 +31,15 @@ IMPORTANT RULES:
 6. For programming-related topics (SQL, OOPs, C, Java, Python, etc.), include a "codeSnippet" field with relevant code and set "codeLanguage" to the programming language. For non-programming questions, set these fields to null.
 7. Make questions tricky and exam-realistic — not textbook definitions.
 
+ACCURACY — THIS IS THE MOST IMPORTANT RULE:
+- EVERY answer MUST be mathematically and logically correct.
+- The "answer" field MUST match the option letter that the explanation proves is correct.
+- After generating each question, VERIFY: solve the problem yourself, confirm the correct option letter, and make sure the "answer" field contains THAT letter.
+- Do NOT put one letter in "answer" and then describe a different letter as correct in the explanation. If your calculation shows the answer is C, then "answer" must be "C".
+- For numerical questions: actually compute the answer, check which option matches, and set that option letter.
+- For code output questions: mentally trace the code execution and verify the output matches the selected option.
+- Double-check every single question before including it.
+
 CRITICAL INSTRUCTIONS — READ CAREFULLY:
 - Your ONLY job is to return the questions in the JSON format specified below.
 - Do NOT start a quiz, test, or interactive session.
@@ -56,7 +65,7 @@ OUTPUT FORMAT — Return ONLY this JSON structure:
         "D": "Returns NULL"
       },
       "answer": "B",
-      "explanation": "COUNT(*) counts all rows matching the WHERE condition.",
+      "explanation": "COUNT(*) counts all rows matching the WHERE condition. The correct answer is B.",
       "topic": "SQL",
       "difficulty": "medium"
     },
@@ -72,14 +81,14 @@ OUTPUT FORMAT — Return ONLY this JSON structure:
         "D": "Option D"
       },
       "answer": "A",
-      "explanation": "Explanation here.",
+      "explanation": "Explanation here. The correct answer is A.",
       "topic": "Quantitative Aptitude",
       "difficulty": "hard"
     }
   ]
 }
 
-Generate all ${numQuestions} questions now. Return ONLY the raw JSON object — no text before it, no text after it, no code fences, no markdown formatting. Do not start an interactive quiz or test session.`;
+Generate all ${numQuestions} questions now. Return ONLY the raw JSON object — no text before it, no text after it, no code fences, no markdown formatting. Do not start an interactive quiz or test session. Remember: verify every answer is correct and consistent with its explanation before outputting.`;
 }
 
 function parseQuestions(raw) {
@@ -95,7 +104,9 @@ function parseQuestions(raw) {
     throw new Error('JSON must contain a "questions" array with at least 1 question.');
   }
 
-  return data.questions.map((q, i) => {
+  const warnings = [];
+
+  const questions = data.questions.map((q, i) => {
     if (!q.question) throw new Error(`Question ${i + 1} is missing the "question" field.`);
 
     let opts = {};
@@ -116,7 +127,27 @@ function parseQuestions(raw) {
 
     const answer = (q.answer || '').toString().trim().toUpperCase();
     if (!['A', 'B', 'C', 'D'].includes(answer)) {
-      throw new Error(`Question ${i + 1} has invalid answer "${q.answer}". Must be A, B, C, or D.`);
+      throw new Error(
+        `Question ${i + 1} has invalid answer "${q.answer}". Must be A, B, C, or D.`
+      );
+    }
+
+    // Detect answer-explanation mismatches
+    const explanation = q.explanation || '';
+    const mismatchPatterns = [
+      /correct (?:option|answer) is ([A-D])/i,
+      /therefore[,]? (?:the )?(?:correct )?(?:option|answer) is ([A-D])/i,
+      /option ([A-D]) is correct/i,
+      /answer[: ]+([A-D])\b/i,
+    ];
+    for (const pattern of mismatchPatterns) {
+      const match = explanation.match(pattern);
+      if (match && match[1].toUpperCase() !== answer) {
+        warnings.push(
+          `Q${i + 1}: Answer field says "${answer}" but explanation mentions "${match[1].toUpperCase()}" as correct`
+        );
+        break;
+      }
     }
 
     return {
@@ -126,16 +157,19 @@ function parseQuestions(raw) {
       codeLanguage: q.codeLanguage || null,
       options: opts,
       answer,
-      explanation: q.explanation || 'No explanation provided.',
+      explanation: explanation || 'No explanation provided.',
       topic: q.topic || 'General',
       difficulty: (q.difficulty || 'medium').toLowerCase(),
     };
   });
+
+  return { questions, warnings };
 }
 
 export default function PromptScreen({ config, onBack, onStart }) {
   const [jsonInput, setJsonInput] = useState('');
   const [error, setError] = useState('');
+  const [warnings, setWarnings] = useState([]);
   const [copied, setCopied] = useState(false);
 
   const promptText = generatePromptText(config);
@@ -147,15 +181,22 @@ export default function PromptScreen({ config, onBack, onStart }) {
     });
   };
 
-  const handleStart = () => {
+  const handleStart = (forceStart = false) => {
     setError('');
+    setWarnings([]);
     if (!jsonInput.trim()) {
       setError('Please paste the JSON response from the AI.');
       return;
     }
     try {
-      const parsedQuestions = parseQuestions(jsonInput);
-      onStart(parsedQuestions);
+      const { questions, warnings: w } = parseQuestions(jsonInput);
+
+      if (w.length > 0 && !forceStart) {
+        setWarnings(w);
+        return;
+      }
+
+      onStart(questions);
     } catch (e) {
       setError(e.message);
     }
@@ -183,8 +224,8 @@ export default function PromptScreen({ config, onBack, onStart }) {
             </div>
           </div>
           <p className="section-desc">
-            Copy this prompt and paste it into ChatGPT, Gemini, Claude, or any AI chatbot to generate
-            your questions.
+            Copy this prompt and paste it into ChatGPT, Gemini, Claude, or any AI chatbot to
+            generate your questions.
           </p>
           <div className="prompt-box">{promptText}</div>
         </div>
@@ -195,7 +236,11 @@ export default function PromptScreen({ config, onBack, onStart }) {
           <textarea
             className="json-input-area"
             value={jsonInput}
-            onChange={(e) => setJsonInput(e.target.value)}
+            onChange={(e) => {
+              setJsonInput(e.target.value);
+              setWarnings([]);
+              setError('');
+            }}
             placeholder={`Paste the JSON here... It should look like:
 {
   "questions": [
@@ -214,14 +259,42 @@ export default function PromptScreen({ config, onBack, onStart }) {
 }`}
           />
           {error && <div className="error-msg">Error: {error}</div>}
-          <div className="btn-group">
-            <button className="btn btn-secondary" onClick={onBack}>
-              ← Back
-            </button>
-            <button className="btn btn-primary btn-lg" onClick={handleStart}>
-              Start Test
-            </button>
-          </div>
+
+          {warnings.length > 0 && (
+            <div className="warning-box">
+              <div className="warning-title">
+                ⚠ Potential answer-explanation mismatches detected
+              </div>
+              <ul className="warning-list">
+                {warnings.map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+              <p className="warning-note">
+                The AI may have put the wrong letter in the "answer" field. You can still
+                start the test, but some answers might be incorrect.
+              </p>
+              <div className="btn-group">
+                <button className="btn btn-secondary" onClick={() => setWarnings([])}>
+                  ← Fix JSON
+                </button>
+                <button className="btn btn-primary" onClick={() => handleStart(true)}>
+                  Start Anyway
+                </button>
+              </div>
+            </div>
+          )}
+
+          {warnings.length === 0 && (
+            <div className="btn-group">
+              <button className="btn btn-secondary" onClick={onBack}>
+                ← Back
+              </button>
+              <button className="btn btn-primary btn-lg" onClick={() => handleStart(false)}>
+                Start Test
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -133,3 +133,40 @@
   font-size: 0.85rem;
   margin-top: 0.75rem;
 }
+
+/* Warning Box */
+.warning-box {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning);
+  border-radius: var(--radius);
+}
+.warning-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--warning);
+  margin-bottom: 0.6rem;
+}
+.warning-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.warning-list li {
+  font-size: 0.84rem;
+  color: var(--text-primary);
+  padding: 0.35rem 0.6rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-family: 'Consolas', monospace;
+}
+.warning-note {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 0;
+}
+
