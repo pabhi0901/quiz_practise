@@ -272,10 +272,15 @@ function parseQuestions(raw) {
       }
     }
 
+    let codeSnippet = q.codeSnippet || null;
+    if (typeof codeSnippet === 'string') {
+      codeSnippet = codeSnippet.replace(/\\n/g, '\n').replace(/\\t/g, '    ');
+    }
+
     return {
       id: q.id || i + 1,
       question: q.question,
-      codeSnippet: q.codeSnippet || null,
+      codeSnippet,
       codeLanguage: q.codeLanguage || null,
       options: opts,
       answer,

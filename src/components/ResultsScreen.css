@@ -301,6 +301,7 @@
   line-height: 1.7;
   color: #c5d1de;
   tab-size: 4;
+  white-space: pre !important;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
 }
@@ -309,6 +310,11 @@
   width: 0;
   height: 0;
 }
+.code-snippet-pre code {
+  font-family: inherit;
+  white-space: pre !important;
+}
+
 
 
 /* ─── Review Options ─── */
