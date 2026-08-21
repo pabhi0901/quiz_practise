@@ -510,11 +510,13 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
                 </svg>
                 Submit Test
               </button>
-              <div className="submission-disclaimer">
-                You can submit the test anytime before the timer ends.
-              </div>
             </div>
+          </div>
 
+          <div className="side-panel-bottom-credits">
+            <div className="submission-disclaimer">
+              You can submit the test anytime before the timer ends.
+            </div>
             <div className="quiz-sidebar-branding">
               Made by <a href="https://www.linkedin.com/in/abhishek-pandey-45b215296/" target="_blank" rel="noreferrer">Abhi</a> 
               <span className="br-dot">•</span>
