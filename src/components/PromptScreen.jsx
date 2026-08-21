@@ -31,14 +31,23 @@ IMPORTANT RULES:
 6. For programming-related topics (SQL, OOPs, C, Java, Python, etc.), include a "codeSnippet" field with relevant code and set "codeLanguage" to the programming language. For non-programming questions, set these fields to null.
 7. Make questions tricky and exam-realistic — not textbook definitions.
 
+JSON STRING ESCAPING — EXTREMELY IMPORTANT:
+- The output MUST be valid, parseable JSON.
+- Inside ANY JSON string value, all double quotes MUST be escaped as \\"
+- This is especially critical for codeSnippet values that contain code with double quotes.
+- WRONG: "codeSnippet": "cout << "Hello" << endl;"
+- CORRECT: "codeSnippet": "cout << \\"Hello\\" << endl;"
+- For newlines in code, use \\n
+- Example of a properly escaped C++ code snippet:
+  "codeSnippet": "#include <iostream>\\nusing namespace std;\\nint main() {\\n    cout << \\"Hello\\" << endl;\\n    return 0;\\n}"
+
 ACCURACY — THIS IS THE MOST IMPORTANT RULE:
 - EVERY answer MUST be mathematically and logically correct.
 - The "answer" field MUST match the option letter that the explanation proves is correct.
 - After generating each question, VERIFY: solve the problem yourself, confirm the correct option letter, and make sure the "answer" field contains THAT letter.
-- Do NOT put one letter in "answer" and then describe a different letter as correct in the explanation. If your calculation shows the answer is C, then "answer" must be "C".
+- Do NOT put one letter in "answer" and then describe a different letter as correct in the explanation.
 - For numerical questions: actually compute the answer, check which option matches, and set that option letter.
 - For code output questions: mentally trace the code execution and verify the output matches the selected option.
-- Double-check every single question before including it.
 
 CRITICAL INSTRUCTIONS — READ CAREFULLY:
 - Your ONLY job is to return the questions in the JSON format specified below.
@@ -56,18 +65,18 @@ OUTPUT FORMAT — Return ONLY this JSON structure:
     {
       "id": 1,
       "question": "What will be the output of the following code?",
-      "codeSnippet": "SELECT COUNT(*) FROM employees WHERE salary > 50000;",
-      "codeLanguage": "sql",
+      "codeSnippet": "#include <iostream>\\nusing namespace std;\\nint main() {\\n    cout << \\"Hello\\" << endl;\\n    return 0;\\n}",
+      "codeLanguage": "cpp",
       "options": {
-        "A": "Returns total rows",
-        "B": "Returns count of employees with salary > 50000",
-        "C": "Syntax error",
-        "D": "Returns NULL"
+        "A": "Hello",
+        "B": "hello",
+        "C": "Compilation Error",
+        "D": "Runtime Error"
       },
-      "answer": "B",
-      "explanation": "COUNT(*) counts all rows matching the WHERE condition. The correct answer is B.",
-      "topic": "SQL",
-      "difficulty": "medium"
+      "answer": "A",
+      "explanation": "The program prints Hello to stdout. The correct answer is A.",
+      "topic": "OOPs",
+      "difficulty": "easy"
     },
     {
       "id": 2,
@@ -88,7 +97,106 @@ OUTPUT FORMAT — Return ONLY this JSON structure:
   ]
 }
 
-Generate all ${numQuestions} questions now. Return ONLY the raw JSON object — no text before it, no text after it, no code fences, no markdown formatting. Do not start an interactive quiz or test session. Remember: verify every answer is correct and consistent with its explanation before outputting.`;
+Generate all ${numQuestions} questions now. Return ONLY the raw JSON object — no text before it, no text after it, no code fences, no markdown formatting. Do not start an interactive quiz or test session. Remember: escape all double quotes inside string values as \\", verify every answer is correct and consistent with its explanation.`;
+}
+
+/**
+ * Attempts to fix unescaped double quotes inside JSON string values,
+ * especially in codeSnippet fields that contain programming code.
+ */
+function fixBrokenJson(raw) {
+  // Strategy: We know codeSnippet is always followed by codeLanguage.
+  // Find each "codeSnippet": "..." section and escape internal quotes.
+  // Also handle "question" fields that might contain quotes.
+
+  let fixed = raw;
+
+  // Fix codeSnippet fields (most common source of broken quotes)
+  fixed = fixFieldQuotes(fixed, 'codeSnippet', 'codeLanguage');
+
+  // Fix question fields (occasionally has quotes)
+  fixed = fixFieldQuotes(fixed, 'question', 'codeSnippet');
+
+  return fixed;
+}
+
+function fixFieldQuotes(jsonStr, fieldName, nextFieldName) {
+  const fieldKey = `"${fieldName}"`;
+  const nextKey = `"${nextFieldName}"`;
+  const result = [];
+  let searchFrom = 0;
+
+  while (searchFrom < jsonStr.length) {
+    const keyPos = jsonStr.indexOf(fieldKey, searchFrom);
+    if (keyPos === -1) {
+      result.push(jsonStr.substring(searchFrom));
+      break;
+    }
+
+    // Push everything before this field
+    result.push(jsonStr.substring(searchFrom, keyPos));
+
+    // Find the colon after the key
+    let j = keyPos + fieldKey.length;
+    while (j < jsonStr.length && jsonStr[j] !== ':') j++;
+    j++; // skip colon
+    while (j < jsonStr.length && /\s/.test(jsonStr[j])) j++;
+
+    // Check if value is null
+    if (jsonStr.substring(j, j + 4) === 'null') {
+      result.push(jsonStr.substring(keyPos, j + 4));
+      searchFrom = j + 4;
+      continue;
+    }
+
+    // Must be a string starting with "
+    if (jsonStr[j] !== '"') {
+      result.push(jsonStr.substring(keyPos, j + 1));
+      searchFrom = j + 1;
+      continue;
+    }
+
+    // Find the next field marker to know where this value ends
+    const nextKeyPos = jsonStr.indexOf(nextKey, j + 1);
+    if (nextKeyPos === -1) {
+      // Can't find next field — try to use a generic end pattern
+      // Fall back: just push as-is and move on
+      result.push(jsonStr.substring(keyPos, j + 1));
+      searchFrom = j + 1;
+      continue;
+    }
+
+    // Work backwards from nextKeyPos to find the closing quote of this value
+    // Pattern should be: "value",\n    "nextField"
+    let endQuote = nextKeyPos - 1;
+    while (endQuote > j && /\s/.test(jsonStr[endQuote])) endQuote--;
+    if (jsonStr[endQuote] === ',') endQuote--;
+    while (endQuote > j && /\s/.test(jsonStr[endQuote])) endQuote--;
+
+    if (jsonStr[endQuote] === '"' && endQuote > j) {
+      // Content is between j+1 and endQuote (exclusive)
+      const content = jsonStr.substring(j + 1, endQuote);
+
+      // Check if there are unescaped quotes
+      const hasUnescaped = /(?<!\\)"/.test(content);
+      if (hasUnescaped) {
+        // Escape all unescaped double quotes
+        const escaped = content
+          .replace(/\\"/g, '\x00ESCQ\x00') // preserve already escaped
+          .replace(/"/g, '\\"') // escape unescaped
+          .replace(/\x00ESCQ\x00/g, '\\"'); // restore
+        result.push(fieldKey + ': "' + escaped + '"');
+      } else {
+        result.push(jsonStr.substring(keyPos, endQuote + 1));
+      }
+      searchFrom = endQuote + 1;
+    } else {
+      result.push(jsonStr.substring(keyPos, j + 1));
+      searchFrom = j + 1;
+    }
+  }
+
+  return result.join('');
 }
 
 function parseQuestions(raw) {
@@ -98,7 +206,22 @@ function parseQuestions(raw) {
   const fenceMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) jsonStr = fenceMatch[1].trim();
 
-  const data = JSON.parse(jsonStr);
+  // Try parsing as-is first
+  let data;
+  try {
+    data = JSON.parse(jsonStr);
+  } catch (firstError) {
+    // Try to fix broken JSON (unescaped quotes in code snippets)
+    try {
+      const fixed = fixBrokenJson(jsonStr);
+      data = JSON.parse(fixed);
+    } catch (secondError) {
+      // If still fails, show the original error with a helpful hint
+      throw new Error(
+        `Invalid JSON: ${firstError.message}\n\nThis usually happens when the AI includes unescaped double quotes (") inside code snippets. Try asking the AI to "escape all double quotes in codeSnippet values as \\\"" or regenerate the questions.`
+      );
+    }
+  }
 
   if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
     throw new Error('JSON must contain a "questions" array with at least 1 question.');
@@ -138,7 +261,6 @@ function parseQuestions(raw) {
       /correct (?:option|answer) is ([A-D])/i,
       /therefore[,]? (?:the )?(?:correct )?(?:option|answer) is ([A-D])/i,
       /option ([A-D]) is correct/i,
-      /answer[: ]+([A-D])\b/i,
     ];
     for (const pattern of mismatchPatterns) {
       const match = explanation.match(pattern);
@@ -258,12 +380,12 @@ export default function PromptScreen({ config, onBack, onStart }) {
   ]
 }`}
           />
-          {error && <div className="error-msg">Error: {error}</div>}
+          {error && <div className="error-msg">{error}</div>}
 
           {warnings.length > 0 && (
             <div className="warning-box">
               <div className="warning-title">
-                ⚠ Potential answer-explanation mismatches detected
+                Potential answer-explanation mismatches detected
               </div>
               <ul className="warning-list">
                 {warnings.map((w, i) => (
@@ -271,8 +393,8 @@ export default function PromptScreen({ config, onBack, onStart }) {
                 ))}
               </ul>
               <p className="warning-note">
-                The AI may have put the wrong letter in the "answer" field. You can still
-                start the test, but some answers might be incorrect.
+                The AI may have put the wrong letter in the "answer" field. You can still start
+                the test, but some answers might be incorrect.
               </p>
               <div className="btn-group">
                 <button className="btn btn-secondary" onClick={() => setWarnings([])}>
