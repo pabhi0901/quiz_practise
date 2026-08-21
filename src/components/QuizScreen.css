@@ -14,54 +14,97 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 1.5rem;
+  padding: 0.75rem 2rem;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   z-index: 10;
 }
-.quiz-title {
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--accent);
+
+.quiz-title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
 }
+
+.quiz-indicator-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  animation: pulse-dot 1.5s infinite ease-in-out;
+  box-shadow: 0 0 10px var(--success);
+}
+
+.quiz-live-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--success);
+  letter-spacing: 0.5px;
+}
+
+.quiz-divider {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.quiz-brand-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.4;
+  }
+}
+
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
+
 .shortcut-hint {
-  font-size: 0.78rem;
-  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
   opacity: 0.7;
 }
+
 .shortcut-hint:hover {
   opacity: 1;
 }
+
 .quiz-timer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 700;
   font-family: 'Consolas', monospace;
   color: var(--text-primary);
-  padding: 0.4rem 1rem;
+  padding: 0.35rem 0.85rem;
   background: var(--bg-tertiary);
   border-radius: var(--radius);
   border: 1px solid var(--border);
 }
+
 .quiz-timer.warning {
   color: var(--warning);
   border-color: var(--warning);
 }
+
 .quiz-timer.danger {
   color: var(--danger);
   border-color: var(--danger);
   animation: pulse 1s infinite;
-}
-.timer-icon {
-  font-size: 1.1rem;
 }
 
 /* ─── Quiz Body ─── */
@@ -74,17 +117,20 @@
 /* ─── Question Panel ─── */
 .question-panel {
   flex: 1;
-  padding: 2rem 3rem;
+  padding: 2.5rem 3.5rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
+
 .question-panel::-webkit-scrollbar {
   width: 6px;
 }
+
 .question-panel::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .question-panel::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 3px;
@@ -93,47 +139,64 @@
 .q-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   margin-bottom: 1.5rem;
 }
-.q-number {
-  background: var(--accent);
-  color: #fff;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+
+.q-counter {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: baseline;
+  font-family: 'Consolas', monospace;
   font-weight: 700;
-  font-size: 0.9rem;
-  flex-shrink: 0;
+  gap: 0.15rem;
+  user-select: none;
 }
+
+.q-curr {
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+
+.q-sep {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.q-total {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
 .q-meta {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
   align-items: center;
 }
+
 .q-badge {
-  padding: 0.2rem 0.6rem;
-  border-radius: 100px;
-  font-size: 0.72rem;
-  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
+
 .q-badge.easy {
   background: var(--success-bg);
   color: var(--success);
 }
+
 .q-badge.medium {
   background: var(--warning-bg);
   color: var(--warning);
 }
+
 .q-badge.hard {
   background: var(--danger-bg);
   color: var(--danger);
 }
+
 .q-badge.topic-badge {
   background: var(--purple-bg);
   color: var(--purple);
@@ -141,9 +204,10 @@
 
 .q-text {
   font-size: 1.1rem;
-  line-height: 1.8;
-  margin-bottom: 1.25rem;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
   color: var(--text-primary);
+  font-weight: 500;
 }
 
 /* ─── Code Snippet ─── */
@@ -153,7 +217,9 @@
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
+  flex-shrink: 0 !important; /* Prevent collapsing in viewport scale */
 }
+
 .code-lang-tag {
   position: absolute;
   top: 0;
@@ -165,27 +231,32 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   border-bottom-left-radius: var(--radius);
+  z-index: 1;
 }
+
 pre.code-snippet-pre {
-  background: #0a0e14 !important;
+  background: #07090e !important;
   padding: 1.25rem 1.5rem !important;
   margin: 0 !important;
   overflow: auto !important;
-  max-height: 350px !important;
+  max-height: 400px !important;
+  min-height: 180px !important; /* Preserve visibility when browser is squished */
   font-family: 'Consolas', 'Fira Code', 'Courier New', monospace !important;
-  font-size: 0.88rem !important;
-  line-height: 1.7 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.6 !important;
   color: #c5d1de !important;
   tab-size: 4 !important;
   white-space: pre !important;
-  scrollbar-width: none !important; /* Firefox */
-  -ms-overflow-style: none !important; /* IE 10+ */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
+
 pre.code-snippet-pre::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
+
 pre.code-snippet-pre code {
   font-family: inherit !important;
   white-space: pre !important;
@@ -195,51 +266,59 @@ pre.code-snippet-pre code {
 .options-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
   margin-bottom: 2rem;
 }
+
 .option-item {
   display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 1rem 1.25rem;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1.15rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: pointer;
   transition: all var(--transition);
 }
+
 .option-item:hover {
-  border-color: var(--accent);
+  border-color: rgba(255, 255, 255, 0.15);
   background: var(--bg-hover);
 }
+
 .option-item.selected {
   border-color: var(--accent);
   background: var(--accent-glow);
+  box-shadow: 0 0 12px var(--accent-glow);
 }
+
 .option-letter {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--bg-tertiary);
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: 'Consolas', monospace;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   flex-shrink: 0;
   transition: all var(--transition);
 }
+
 .option-item.selected .option-letter {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: #07090e;
 }
+
 .option-text {
-  padding-top: 0.25rem;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1.5;
 }
 

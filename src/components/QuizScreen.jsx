@@ -260,7 +260,12 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
     <div className="quiz-screen">
       {/* Top Bar */}
       <div className="quiz-topbar">
-        <div className="quiz-title">Practice Test</div>
+        <div className="quiz-title-section">
+          <div className="quiz-indicator-dot"></div>
+          <span className="quiz-live-label">SIMULATION LIVE</span>
+          <span className="quiz-divider">//</span>
+          <span className="quiz-brand-title">PRACTICE.TEST</span>
+        </div>
         <div className="topbar-right">
           <button
             className="btn btn-secondary btn-sm shortcut-hint"
@@ -270,7 +275,6 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
             ? Shortcuts
           </button>
           <div className={timerClass}>
-            <span className="timer-icon">⏱</span>
             <span>{formatTime(timeLeft)}</span>
           </div>
         </div>
@@ -281,7 +285,11 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
         {/* Question Panel */}
         <div className="question-panel">
           <div className="q-header">
-            <div className="q-number">{currentQ + 1}</div>
+            <div className="q-counter">
+              <span className="q-curr">{String(currentQ + 1).padStart(2, '0')}</span>
+              <span className="q-sep">/</span>
+              <span className="q-total">{String(questions.length).padStart(2, '0')}</span>
+            </div>
             <div className="q-meta">
               <span className={`q-badge ${q.difficulty}`}>
                 {q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1)}
