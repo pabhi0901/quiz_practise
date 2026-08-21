@@ -1,11 +1,25 @@
 import { useState, useEffect, useMemo } from 'react';
 import './ResultsScreen.css';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-javascript';
 
 export default function ResultsScreen({ questions, userAnswers, meta, config, onRetest, onNewQuiz }) {
   const [filter, setFilter] = useState('all');
   const [animatedPercent, setAnimatedPercent] = useState(0);
 
   const negativeMarking = config?.negativeMarking || { enabled: false, penalty: 0.25 };
+
+  // Highlight code snippets when review filter changes
+  useEffect(() => {
+    Prism.highlightAll();
+  }, [filter]);
 
   // Calculate stats
   let correct = 0,
@@ -345,7 +359,9 @@ export default function ResultsScreen({ questions, userAnswers, meta, config, on
                       <div className="code-lang-tag">{r.codeLanguage.toUpperCase()}</div>
                     )}
                     <pre className="code-snippet-pre">
-                      <code>{r.codeSnippet}</code>
+                      <code className={`language-${(r.codeLanguage || 'clike').toLowerCase()}`}>
+                        {r.codeSnippet}
+                      </code>
                     </pre>
                   </div>
                 )}

@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './QuizScreen.css';
+import Prism from 'prismjs';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-javascript';
 
 export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
   const [currentQ, setCurrentQ] = useState(0);
@@ -15,6 +24,11 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [topicFilter, setTopicFilter] = useState('all');
+
+  // Highlight code snippets when current question changes
+  useEffect(() => {
+    Prism.highlightAll();
+  }, [currentQ]);
 
   // Time per question tracking
   const timePerQ = useRef(new Array(questions.length).fill(0));
@@ -285,7 +299,9 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
                 <div className="code-lang-tag">{q.codeLanguage.toUpperCase()}</div>
               )}
               <pre className="code-snippet-pre">
-                <code>{q.codeSnippet}</code>
+                <code className={`language-${(q.codeLanguage || 'clike').toLowerCase()}`}>
+                  {q.codeSnippet}
+                </code>
               </pre>
             </div>
           )}
