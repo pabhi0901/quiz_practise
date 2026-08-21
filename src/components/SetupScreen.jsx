@@ -289,6 +289,17 @@ export default function SetupScreen({ onComplete, initialConfig }) {
                   onChange={(e) => setNumQuestions(parseInt(e.target.value) || 0)}
                   placeholder="30"
                 />
+                <div className="preset-chips">
+                  {[10, 20, 30, 50].map((n) => (
+                    <span
+                      key={n}
+                      className={`preset-chip ${numQuestions === n ? 'active' : ''}`}
+                      onClick={() => setNumQuestions(n)}
+                    >
+                      {n}
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="form-group">
                 <label className="form-label">Duration (Min)</label>
@@ -301,6 +312,17 @@ export default function SetupScreen({ onComplete, initialConfig }) {
                   onChange={(e) => setTime(parseInt(e.target.value) || 0)}
                   placeholder="30"
                 />
+                <div className="preset-chips">
+                  {[15, 30, 45, 60].map((t) => (
+                    <span
+                      key={t}
+                      className={`preset-chip ${time === t ? 'active' : ''}`}
+                      onClick={() => setTime(t)}
+                    >
+                      {t}m
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 

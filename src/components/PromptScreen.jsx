@@ -389,6 +389,11 @@ export default function PromptScreen({ config, onBack, onStart }) {
   const [error, setError] = useState('');
   const [warnings, setWarnings] = useState([]);
   const [copied, setCopied] = useState(false);
+  const [validationLogs, setValidationLogs] = useState({
+    syntax: 'idle', // idle | success | error
+    pattern: 'idle', // idle | success | error
+    keys: 'idle', // idle | success | warning
+  });
 
   const promptText = generatePromptText(config);
 
@@ -399,21 +404,80 @@ export default function PromptScreen({ config, onBack, onStart }) {
     });
   };
 
-  const handleStart = (forceStart = false) => {
+  const handleTextareaChange = (val) => {
+    setJsonInput(val);
     setError('');
     setWarnings([]);
+
+    if (!val.trim()) {
+      setValidationLogs({ syntax: 'idle', pattern: 'idle', keys: 'idle' });
+      return;
+    }
+
+    try {
+      let rawJson = val.trim();
+      const fenceMatch = rawJson.match(/```(?:json)?\s*([\s\S]*?)```/);
+      if (fenceMatch) rawJson = fenceMatch[1].trim();
+
+      let data;
+      try {
+        data = JSON.parse(rawJson);
+      } catch {
+        const fixed = fixBrokenJson(rawJson);
+        data = JSON.parse(fixed);
+      }
+
+      setValidationLogs(prev => ({ ...prev, syntax: 'success' }));
+
+      if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+        setValidationLogs(prev => ({ ...prev, pattern: 'success' }));
+      } else {
+        setValidationLogs(prev => ({ ...prev, pattern: 'error' }));
+        return;
+      }
+
+      const w = [];
+      data.questions.forEach((q, i) => {
+        const answer = (q.answer || '').toString().trim().toUpperCase();
+        const explanation = q.explanation || '';
+        const mismatchPatterns = [
+          /correct (?:option|answer) is ([A-D])/i,
+          /therefore[,]? (?:the )?(?:correct )?(?:option|answer) is ([A-D])/i,
+          /option ([A-D]) is correct/i,
+        ];
+        for (const pattern of mismatchPatterns) {
+          const match = explanation.match(pattern);
+          if (match && match[1].toUpperCase() !== answer) {
+            w.push(`Q${i + 1}: Expected '${match[1].toUpperCase()}', got '${answer}'`);
+            break;
+          }
+        }
+      });
+
+      if (w.length > 0) {
+        setWarnings(w);
+        setValidationLogs(prev => ({ ...prev, keys: 'warning' }));
+      } else {
+        setValidationLogs(prev => ({ ...prev, keys: 'success' }));
+      }
+
+    } catch (e) {
+      setValidationLogs({
+        syntax: 'error',
+        pattern: 'idle',
+        keys: 'idle'
+      });
+    }
+  };
+
+  const handleStart = (forceStart = false) => {
+    setError('');
     if (!jsonInput.trim()) {
       setError('Please paste the JSON response from the AI.');
       return;
     }
     try {
-      const { questions, warnings: w } = parseQuestions(jsonInput);
-
-      if (w.length > 0 && !forceStart) {
-        setWarnings(w);
-        return;
-      }
-
+      const { questions } = parseQuestions(jsonInput);
       onStart(questions);
     } catch (e) {
       setError(e.message);
@@ -422,97 +486,124 @@ export default function PromptScreen({ config, onBack, onStart }) {
 
   return (
     <div className="prompt-screen">
-      <div className="prompt-container fade-up">
-        <div className="step-indicator">
-          <span className="step-num step-done">✓</span>
-          <span className="step-text">Setup Complete</span>
-          <span className="step-arrow">→</span>
-          <span className="step-num">2</span>
-          <span className="step-text">Copy prompt &amp; paste questions</span>
-        </div>
-
-        <div className="form-card prompt-section">
-          <div className="prompt-header">
-            <h3 className="section-title">AI Prompt</h3>
-            <div className="prompt-actions">
-              {copied && <span className="copy-status">✓ Copied!</span>}
-              <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
-                Copy Prompt
+      <div className="console-layout fade-up">
+        {/* Left Side: Prompt Console */}
+        <div className="console-column">
+          <div className="terminal-window">
+            <div className="terminal-header">
+              <div className="window-dots">
+                <span className="dot red"></span>
+                <span className="dot yellow"></span>
+                <span className="dot green"></span>
+              </div>
+              <span className="terminal-title">PROMPT_GENERATOR.SH</span>
+              <button className={`copy-terminal-btn ${copied ? 'copied' : ''}`} onClick={handleCopy}>
+                {copied ? 'Copied ✓' : 'Copy Prompt'}
               </button>
+            </div>
+            <div className="terminal-body prompt-terminal">
+              <div className="terminal-welcome">
+                // COPY THIS COMMAND AND PASTE TO GEMINI/GPT/CLAUDE TO FETCH QUESTIONS
+              </div>
+              <pre className="terminal-code-box">
+                <code>{promptText}</code>
+              </pre>
             </div>
           </div>
-          <p className="section-desc">
-            Copy this prompt and paste it into ChatGPT, Gemini, Claude, or any AI chatbot to
-            generate your questions.
-          </p>
-          <div className="prompt-box">{promptText}</div>
         </div>
 
-        <div className="form-card json-section">
-          <h3 className="section-title">Paste AI Response</h3>
-          <p className="section-desc">Paste the JSON output you received from the AI below.</p>
-          <textarea
-            className="json-input-area"
-            value={jsonInput}
-            onChange={(e) => {
-              setJsonInput(e.target.value);
-              setWarnings([]);
-              setError('');
-            }}
-            placeholder={`Paste the JSON here... It should look like:
-{
-  "questions": [
-    {
-      "id": 1,
-      "question": "...",
-      "codeSnippet": "SELECT * FROM ...",
-      "codeLanguage": "sql",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "answer": "B",
-      "explanation": "...",
-      "topic": "...",
-      "difficulty": "medium"
-    }
-  ]
-}`}
-          />
-          {error && <div className="error-msg">{error}</div>}
-
-          {warnings.length > 0 && (
-            <div className="warning-box">
-              <div className="warning-title">
-                Potential answer-explanation mismatches detected
+        {/* Right Side: Parsing & Executing Terminal */}
+        <div className="console-column">
+          <div className="terminal-window">
+            <div className="terminal-header">
+              <div className="window-dots">
+                <span className="dot red"></span>
+                <span className="dot yellow"></span>
+                <span className="dot green"></span>
               </div>
-              <ul className="warning-list">
-                {warnings.map((w, i) => (
-                  <li key={i}>{w}</li>
-                ))}
-              </ul>
-              <p className="warning-note">
-                The AI may have put the wrong letter in the "answer" field. You can still start
-                the test, but some answers might be incorrect.
-              </p>
-              <div className="btn-group">
-                <button className="btn btn-secondary" onClick={() => setWarnings([])}>
-                  ← Fix JSON
-                </button>
-                <button className="btn btn-primary" onClick={() => handleStart(true)}>
-                  Start Anyway
-                </button>
+              <span className="terminal-title">SCHEMA_COMPILER.EXE</span>
+              <span className="terminal-status">// LIVE PARSER</span>
+            </div>
+            <div className="terminal-body code-terminal">
+              <div className="terminal-welcome">
+                // PASTE THE AI OUTPUT BELOW (JSON FORMAT ONLY)
               </div>
-            </div>
-          )}
+              <textarea
+                className="terminal-textarea"
+                value={jsonInput}
+                onChange={(e) => handleTextareaChange(e.target.value)}
+                placeholder={`Paste raw JSON data here...`}
+              />
 
-          {warnings.length === 0 && (
-            <div className="btn-group">
-              <button className="btn btn-secondary" onClick={onBack}>
-                ← Back
-              </button>
-              <button className="btn btn-primary btn-lg" onClick={() => handleStart(false)}>
-                Start Test
-              </button>
+              {/* Live Compiler Status */}
+              <div className="compiler-logs">
+                <div className="log-line">
+                  <span className={`status-icon ${validationLogs.syntax}`}>
+                    {validationLogs.syntax === 'success' ? '✓' : validationLogs.syntax === 'error' ? '×' : '○'}
+                  </span>
+                  <span className="log-text">JSON Syntax Check</span>
+                </div>
+                <div className="log-line">
+                  <span className={`status-icon ${validationLogs.pattern}`}>
+                    {validationLogs.pattern === 'success' ? '✓' : validationLogs.pattern === 'error' ? '×' : '○'}
+                  </span>
+                  <span className="log-text">Assessment Pattern Check (TCS/Infosys Schema)</span>
+                </div>
+                <div className="log-line">
+                  <span className={`status-icon ${validationLogs.keys}`}>
+                    {validationLogs.keys === 'success' ? '✓' : validationLogs.keys === 'warning' ? '!' : validationLogs.keys === 'error' ? '×' : '○'}
+                  </span>
+                  <span className="log-text">Answer Key Integrity Scan</span>
+                </div>
+              </div>
+
+              {/* Error Output */}
+              {error && (
+                <div className="compiler-error-trace">
+                  <span className="trace-header">SYSTEM_ERROR_TRACE:</span>
+                  <pre className="trace-body">{error}</pre>
+                </div>
+              )}
+
+              {/* Warning Mismatches Box */}
+              {warnings.length > 0 && (
+                <div className="compiler-warning-trace">
+                  <span className="trace-header">COMPILER_WARNING_LOG:</span>
+                  <div className="warning-scroll-box">
+                    {warnings.map((w, idx) => (
+                      <div key={idx} className="trace-warning-line">
+                        [WARN] {w}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="warning-action-row">
+                    <button className="btn btn-secondary btn-sm" onClick={() => setWarnings([])}>
+                      Re-parse
+                    </button>
+                    <button className="btn btn-primary btn-sm" onClick={() => handleStart(true)}>
+                      Execute Mismatched Test
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Footer */}
+              {warnings.length === 0 && (
+                <div className="console-footer-actions">
+                  <button className="btn btn-secondary" onClick={onBack}>
+                    ← Config Parameters
+                  </button>
+                  <button
+                    className="btn btn-primary btn-lg"
+                    onClick={() => handleStart(false)}
+                    disabled={validationLogs.syntax !== 'success' || validationLogs.pattern !== 'success'}
+                  >
+                    Run Simulation ⚡
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
