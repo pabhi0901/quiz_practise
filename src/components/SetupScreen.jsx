@@ -854,7 +854,6 @@ export default function SetupScreen({ onComplete, initialConfig }) {
                   {[
                     { key: 'english', label: 'English' },
                     { key: 'hindi', label: 'Hindi (हिंदी)' },
-                    { key: 'bilingual', label: 'Bilingual (English + Hindi)' },
                   ].map((l) => (
                     <label
                       className={`diff-chip ${examLanguage === l.key ? 'selected' : ''}`}

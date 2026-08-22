@@ -48,6 +48,19 @@ JSON STRING ESCAPING — EXTREMELY IMPORTANT:
 - Example of a properly escaped C++ code snippet:
   "codeSnippet": "#include <iostream>\\nusing namespace std;\\nint main() {\\n    cout << \\"Hello\\" << endl;\\n    return 0;\\n}"
 
+STRICT JSON OPTION QUOTING — ZERO TOLERANCE FOR SYNTAX ERRORS:
+- EVERY key and EVERY value inside the "options" object MUST be enclosed in double quotes.
+- CORRECT: "options": { "A": "0", "B": "1", "C": "2", "D": "3" }
+- WRONG: "options": { "A": "0", "B": 1", "C": 2", "D": 3" } <-- NEVER OMIT OPENING DOUBLE QUOTES FOR NUMERICAL/TEXT OPTIONS!
+
+STRICT ANSWER MATCH & SOLVABILITY RULES:
+1. EXACT MATCH: The letter in the "answer" field MUST match the option letter proven correct in the "explanation".
+   - If explanation proves Option B is correct, "answer" MUST be "B". Never put "answer": "C" when explanation says B is correct!
+2. SOLVABLE & CONSISTENT: Exactly ONE of the options A, B, C, or D MUST be 100% correct.
+   - NEVER generate a question where none of the options is correct!
+   - NEVER write "none of the options is correct", "given options are inconsistent", or "impossible" in any explanation.
+   - Calculate every numerical answer prior to writing JSON and ensure the exact correct answer is assigned to option A, B, C, or D.
+
 ACCURACY — THIS IS THE MOST IMPORTANT RULE:
 - EVERY answer MUST be mathematically and logically correct.
 - The "answer" field MUST match the option letter that the explanation proves is correct.
@@ -123,8 +136,6 @@ function generateCustomExamPrompt(config) {
   let langInstruction = '';
   if (language === 'hindi') {
     langInstruction = `\nLANGUAGE REQUIREMENT: Generate ALL questions, options, explanations, and text strictly in HINDI (हिंदी). Use standard, formal Hindi terminology suitable for Indian competitive exams (${examName}).`;
-  } else if (language === 'bilingual') {
-    langInstruction = `\nLANGUAGE REQUIREMENT: Generate ALL questions, options, and explanations in BILINGUAL format (English + Hindi, e.g., "What is the capital of India? / भारत की राजधानी क्या है?"). Both languages must be clear and accurate.`;
   } else {
     langInstruction = `\nLANGUAGE REQUIREMENT: Generate all questions, options, and explanations in ENGLISH.`;
   }
@@ -179,6 +190,19 @@ JSON STRING ESCAPING — EXTREMELY IMPORTANT:
 - CORRECT: "question": "Who wrote \\"Gitanjali\\"?"
 - For newlines in code or text, use \\n
 
+STRICT JSON OPTION QUOTING — ZERO TOLERANCE FOR SYNTAX ERRORS:
+- EVERY key and EVERY value inside the "options" object MUST be enclosed in double quotes.
+- CORRECT: "options": { "A": "0", "B": "1", "C": "2", "D": "3" }
+- WRONG: "options": { "A": "0", "B": 1", "C": 2", "D": 3" } <-- NEVER OMIT OPENING DOUBLE QUOTES FOR NUMERICAL/TEXT OPTIONS!
+
+STRICT ANSWER MATCH & SOLVABILITY RULES:
+1. EXACT MATCH: The letter in the "answer" field MUST match the option letter proven correct in the "explanation".
+   - If explanation proves Option B is correct, "answer" MUST be "B". Never put "answer": "C" when explanation says B is correct!
+2. SOLVABLE & CONSISTENT: Exactly ONE of the options A, B, C, or D MUST be 100% correct.
+   - NEVER generate a question where none of the options is correct!
+   - NEVER write "none of the options is correct", "given options are inconsistent", or "impossible" in any explanation.
+   - Calculate every numerical answer prior to writing JSON and ensure the exact correct answer is assigned to option A, B, C, or D.
+
 ACCURACY — THIS IS THE MOST IMPORTANT RULE:
 - EVERY answer MUST be mathematically, historically, and logically correct.
 - The "answer" field MUST match the option letter that the explanation proves is correct.
@@ -225,11 +249,13 @@ Generate all ${numQuestions} questions for ${examName} now in ${language.toUpper
  * especially in codeSnippet fields that contain programming code.
  */
 function fixBrokenJson(raw) {
-  // Strategy: We know codeSnippet is always followed by codeLanguage.
-  // Find each "codeSnippet": "..." section and escape internal quotes.
-  // Also handle "question" fields that might contain quotes.
-
   let fixed = raw;
+
+  // Fix missing opening quotes in option values like "B": 0" -> "B": "0" or "D": 5" -> "D": "5"
+  fixed = fixed.replace(/("[A-D]"\s*:\s*)([-+]?\d+(?:\.\d+)?)"/g, '$1"$2"');
+
+  // Fix unquoted numeric option values like "B": 0 -> "B": "0"
+  fixed = fixed.replace(/("[A-D]"\s*:\s*)([-+]?\d+(?:\.\d+)?)(?=\s*[,}])(?!\s*")/g, '$1"$2"');
 
   // Fix codeSnippet fields (most common source of broken quotes)
   fixed = fixFieldQuotes(fixed, 'codeSnippet', 'codeLanguage');
@@ -460,28 +486,34 @@ function parseQuestions(raw) {
       throw new Error(`Question ${i + 1} must have at least 2 options.`);
     }
 
-    const answer = (q.answer || '').toString().trim().toUpperCase();
+    let answer = (q.answer || '').toString().trim().toUpperCase();
     if (!['A', 'B', 'C', 'D'].includes(answer)) {
       throw new Error(
         `Question ${i + 1} has invalid answer "${q.answer}". Must be A, B, C, or D.`
       );
     }
 
-    // Detect answer-explanation mismatches
+    // Detect & auto-align answer-explanation mismatches
     const explanation = q.explanation || '';
     const mismatchPatterns = [
+      /(?:therefore|hence)[,]? (?:the )?(?:correct )?(?:option|answer) is ([A-D])/i,
       /correct (?:option|answer) is ([A-D])/i,
-      /therefore[,]? (?:the )?(?:correct )?(?:option|answer) is ([A-D])/i,
       /option ([A-D]) is correct/i,
     ];
+    let detectedLetter = null;
     for (const pattern of mismatchPatterns) {
       const match = explanation.match(pattern);
-      if (match && match[1].toUpperCase() !== answer) {
-        warnings.push(
-          `Q${i + 1}: Answer field says "${answer}" but explanation mentions "${match[1].toUpperCase()}" as correct`
-        );
+      if (match && ['A', 'B', 'C', 'D'].includes(match[1].toUpperCase())) {
+        detectedLetter = match[1].toUpperCase();
         break;
       }
+    }
+
+    if (detectedLetter && detectedLetter !== answer) {
+      warnings.push(
+        `Q${i + 1}: Auto-aligned answer field from "${answer}" to "${detectedLetter}" to match explanation.`
+      );
+      answer = detectedLetter;
     }
 
     const codeSnippet = q.codeSnippet
