@@ -288,7 +288,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
           </div>
           <div className="nav-links">
             <span className="nav-link active">Home</span>
-            <span className="nav-link" onClick={launchCustomTest}>Customizer</span>
+            <span className="nav-link" onClick={launchCustomTest}>CS & IT Customizer</span>
             <span className="nav-link highlight-link" onClick={launchExamCustomizer}>Practice Any Exam</span>
           </div>
         </div>
@@ -346,7 +346,7 @@ export default function SetupScreen({ onComplete, initialConfig }) {
               </p>
               <div className="hero-actions">
                 <button className="btn btn-primary" onClick={launchCustomTest}>
-                  Start Test →
+                  CS & IT Recruitment Test →
                 </button>
                 <button className="btn btn-secondary" onClick={launchExamCustomizer}>
                   Practice Any Exam →
