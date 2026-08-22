@@ -107,6 +107,119 @@ OUTPUT FORMAT — Return ONLY this JSON structure:
 Generate all ${numQuestions} questions now. Return ONLY the raw JSON object — no text before it, no text after it, no code fences, no markdown formatting. Do not start an interactive quiz or test session. Remember: escape all double quotes inside string values as \\", verify every answer is correct and consistent with its explanation.`;
 }
 
+function generateCustomExamPrompt(config) {
+  const { topics = [], numQuestions = 20, difficulties = ['medium'], examName = 'Competitive Exam', language = 'english' } = config;
+  const diffStr = difficulties.join(', ');
+  const topicStr = topics.join(', ');
+  const perTopic = Math.floor(numQuestions / (topics.length || 1));
+  const remainder = numQuestions % (topics.length || 1);
+
+  let distributionNote = '';
+  if (topics.length > 1) {
+    distributionNote = `\nQUESTION DISTRIBUTION: Distribute questions EVENLY across topics/subjects. Each topic should get approximately ${perTopic} questions${remainder > 0 ? ` (assign ${remainder} extra question(s) to any topic)` : ''}. Total must be exactly ${numQuestions}.`;
+  }
+
+  // Language Instruction
+  let langInstruction = '';
+  if (language === 'hindi') {
+    langInstruction = `\nLANGUAGE REQUIREMENT: Generate ALL questions, options, explanations, and text strictly in HINDI (हिंदी). Use standard, formal Hindi terminology suitable for Indian competitive exams (${examName}).`;
+  } else if (language === 'bilingual') {
+    langInstruction = `\nLANGUAGE REQUIREMENT: Generate ALL questions, options, and explanations in BILINGUAL format (English + Hindi, e.g., "What is the capital of India? / भारत की राजधानी क्या है?"). Both languages must be clear and accurate.`;
+  } else {
+    langInstruction = `\nLANGUAGE REQUIREMENT: Generate all questions, options, and explanations in ENGLISH.`;
+  }
+
+  // Detect if subjects test programming
+  const progKeywords = ['sql', 'c', 'cpp', 'c++', 'java', 'python', 'oops', 'dbms', 'os', 'cn', 'coding', 'programming', 'software', 'compiler', 'toc', 'dsa', 'data structures'];
+  const hasProgramming = topics.some(t => progKeywords.some(kw => t.toLowerCase().includes(kw))) ||
+                         progKeywords.some(kw => examName.toLowerCase().includes(kw));
+
+  let codingRule = '';
+  let distractorRule = '';
+
+  if (hasProgramming) {
+    codingRule = `6. For programming-related topics (SQL, OOPs, C, Java, Python, etc.), include a "codeSnippet" field with relevant code and set "codeLanguage" to the programming language. For non-programming questions, set these fields to null.`;
+    distractorRule = `8. At least 60% of questions should contain a plausible distractor based on a common candidate mistake, such as ignoring syntax rules, confusing WHERE and HAVING in SQL, confusing overloading with overriding, or applying an incorrect logical inference.`;
+  } else {
+    codingRule = `6. This is a non-programming examination (${examName} - ${topicStr}). Set "codeSnippet" and "codeLanguage" to null for ALL questions. Do NOT generate programming or code output questions.`;
+    distractorRule = `8. At least 60% of questions should contain a plausible distractor based on a common candidate mistake for ${examName} (e.g., misinterpreting formulas, confusing historical events or constitutional articles, miscalculating percentages/ratios, or subtle conceptual traps).`;
+  }
+
+  return `You are an expert question paper setter for the "${examName}" examination.
+
+Generate exactly ${numQuestions} multiple-choice questions (MCQs) for the following topics/subjects:
+Topics/Subjects: ${topicStr}
+
+Target Exam: ${examName}
+Difficulty Level(s): ${diffStr}
+Pattern: Before generating questions, internally identify recurring patterns from actual/reported ${examName} previous year papers (PYQs), including question structure, concept combinations, calculation intensity, distractor design, and difficulty. Generate original questions based on those patterns. Do not copy exact PYQs.
+${distributionNote}
+${langInstruction}
+
+IMPORTANT RULES:
+1. Each question MUST have exactly 4 options labeled A, B, C, D.
+2. The "answer" field must contain ONLY the correct option letter (A, B, C, or D).
+3. Provide a brief explanation for each answer.
+4. Include the topic and difficulty for each question.
+5. Questions must be strictly relevant to the syllabus and style of ${examName}.
+${codingRule}
+7. Make questions tricky and exam-realistic for ${examName} — not textbook definitions.
+${distractorRule}
+9. 25% - 35% of questions should combine two related concepts rather than testing a single isolated formula or definition.
+10. Do not make questions difficult merely by using unnecessarily large numbers or lengthy calculations. Difficulty should come from reasoning, concept interaction, ambiguity resolution, or carefully designed distractors.
+11. Before producing the final JSON, internally perform a second independent verification of every question. Solve the problem yourself, verify the reasoning, and confirm that the selected answer option is 100% accurate.
+12. Use actual/reported ${examName} PYQs as a pattern reference when available. If web access is available, research recent ${examName} PYQs before generation. Do not claim a generated question is a PYQ unless it has been verified as one.
+13. Ensure broad subtopic coverage within each topic/subject. Do not generate more than 2 questions testing essentially the same underlying concept/pattern.
+14. Hard questions should resemble difficult ${examName} exam questions: the difficulty should arise from combining concepts, interpreting conditions, identifying traps, or tracing non-obvious behavior—not from obscure facts.
+
+JSON STRING ESCAPING — EXTREMELY IMPORTANT:
+- The output MUST be valid, parseable JSON.
+- Inside ANY JSON string value, all double quotes MUST be escaped as \\"
+- WRONG: "question": "Who wrote "Gitanjali"?"
+- CORRECT: "question": "Who wrote \\"Gitanjali\\"?"
+- For newlines in code or text, use \\n
+
+ACCURACY — THIS IS THE MOST IMPORTANT RULE:
+- EVERY answer MUST be mathematically, historically, and logically correct.
+- The "answer" field MUST match the option letter that the explanation proves is correct.
+- After generating each question, VERIFY: solve the problem yourself, confirm the correct option letter, and make sure the "answer" field contains THAT letter.
+- Do NOT put one letter in "answer" and then describe a different letter as correct in the explanation.
+
+CRITICAL INSTRUCTIONS — READ CAREFULLY:
+- Your ONLY job is to return the questions in the JSON format specified below.
+- Do NOT start a quiz, test, or interactive session.
+- Do NOT ask me to answer questions one by one.
+- Do NOT display questions in any other format (numbered list, bullets, etc.).
+- Do NOT add any commentary, introduction, or closing remarks.
+- Do NOT wrap the JSON in markdown code fences or backticks.
+- Just output the raw JSON object and NOTHING else.
+
+OUTPUT FORMAT — Return ONLY this JSON structure:
+
+{
+  "questions": [
+    {
+      "id": 1,
+      "question": "Sample question text for ${examName}?",
+      "codeSnippet": null,
+      "codeLanguage": null,
+      "options": {
+        "A": "Option A",
+        "B": "Option B",
+        "C": "Option C",
+        "D": "Option D"
+      },
+      "answer": "A",
+      "explanation": "Explanation here. The correct answer is A.",
+      "topic": "${topics[0] || 'General'}",
+      "difficulty": "medium"
+    }
+  ]
+}
+
+Generate all ${numQuestions} questions for ${examName} now in ${language.toUpperCase()} language. Return ONLY the raw JSON object — no text before it, no text after it, no code fences, no markdown formatting. Do not start an interactive quiz or test session. Remember: escape all double quotes inside string values as \\", verify every answer is correct and consistent with its explanation.`;
+}
+
 /**
  * Attempts to fix unescaped double quotes inside JSON string values,
  * especially in codeSnippet fields that contain programming code.
@@ -402,7 +515,9 @@ export default function PromptScreen({ config, onBack, onStart }) {
     keys: 'idle', // idle | success | warning
   });
 
-  const promptText = generatePromptText(config);
+  const promptText = (config.examMode === 'custom-exam' || config.examName)
+    ? generateCustomExamPrompt(config)
+    : generatePromptText(config);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(promptText).then(() => {

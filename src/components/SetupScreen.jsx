@@ -19,6 +19,11 @@ const DIFFICULTIES = [
   { key: 'mix', label: 'Mix', color: 'var(--purple)' },
 ];
 
+const EXAM_PRESETS = {
+  'Government': ['SSC CGL', 'SSC CHSL', 'UPSC CSAT', 'RRB NTPC', 'IBPS PO', 'SBI PO', 'RBI Grade B', 'NDA', 'CDS', 'GATE CS', 'UGC NET CS'],
+  'Private / IT': ['Accenture', 'Cognizant GenC', 'Wipro NLTH', 'Capgemini', 'HCL', 'Tech Mahindra', 'Mindtree', 'Zoho'],
+};
+
 export default function SetupScreen({ onComplete, initialConfig }) {
   const [userName, setUserName] = useState(() => {
     return localStorage.getItem('userName') || 'Radhe';
@@ -37,6 +42,19 @@ export default function SetupScreen({ onComplete, initialConfig }) {
     initialConfig.negativeMarking?.penalty || 0.25
   );
   const [history, setHistory] = useState([]);
+
+  const [showExamCustomizer, setShowExamCustomizer] = useState(false);
+  const [examName, setExamName] = useState('');
+  const [examSearch, setExamSearch] = useState('');
+  const [subjectOrTopic, setSubjectOrTopic] = useState('subject');
+  const [examTopics, setExamTopics] = useState([]);
+  const [examTopicInput, setExamTopicInput] = useState('');
+  const [examNumQuestions, setExamNumQuestions] = useState('');
+  const [examTime, setExamTime] = useState('');
+  const [examDifficulties, setExamDifficulties] = useState([]);
+  const [examNegativeEnabled, setExamNegativeEnabled] = useState(false);
+  const [examNegativePenalty, setExamNegativePenalty] = useState(0.25);
+  const [examLanguage, setExamLanguage] = useState('english');
 
   const updateName = (val) => {
     setUserName(val);
@@ -161,6 +179,91 @@ export default function SetupScreen({ onComplete, initialConfig }) {
     setShowConfig(true);
   };
 
+  const launchExamCustomizer = () => {
+    setExamName('');
+    setExamSearch('');
+    setSubjectOrTopic('subject');
+    setExamTopics([]);
+    setExamTopicInput('');
+    setExamNumQuestions('');
+    setExamTime('');
+    setExamDifficulties([]);
+    setExamNegativeEnabled(false);
+    setExamNegativePenalty(0.25);
+    setExamLanguage('english');
+    setShowExamCustomizer(true);
+  };
+
+  const addExamTopic = () => {
+    const val = examTopicInput.trim();
+    if (val && !examTopics.includes(val)) {
+      setExamTopics([...examTopics, val]);
+    }
+    setExamTopicInput('');
+  };
+
+  const removeExamTopic = (idx) => {
+    setExamTopics(examTopics.filter((_, i) => i !== idx));
+  };
+
+  const toggleExamDiff = (key) => {
+    setExamDifficulties((prev) =>
+      prev.includes(key) ? prev.filter((d) => d !== key) : [...prev, key]
+    );
+  };
+
+  const selectExamPreset = (name) => {
+    setExamName(name);
+    setExamSearch(name);
+  };
+
+  const filteredExams = useMemo(() => {
+    const search = examSearch.toLowerCase();
+    if (!search) return EXAM_PRESETS;
+    const filtered = {};
+    Object.entries(EXAM_PRESETS).forEach(([category, exams]) => {
+      const matches = exams.filter(e => e.toLowerCase().includes(search));
+      if (matches.length > 0) filtered[category] = matches;
+    });
+    return filtered;
+  }, [examSearch]);
+
+  const handleExamSubmit = () => {
+    const finalExamName = examName || examSearch.trim();
+    if (!finalExamName) {
+      alert('Please enter or select an exam name.');
+      return;
+    }
+    if (examTopics.length === 0) {
+      alert('Please add at least one subject/topic.');
+      return;
+    }
+    if (examDifficulties.length === 0) {
+      alert('Please select at least one difficulty level.');
+      return;
+    }
+    if (examNumQuestions < 1) {
+      alert('Please enter a valid number of questions.');
+      return;
+    }
+    if (examTime < 1) {
+      alert('Please enter a valid time duration.');
+      return;
+    }
+    onComplete({
+      examMode: 'custom-exam',
+      examName: finalExamName,
+      subjectOrTopic,
+      topics: examTopics,
+      numQuestions: examNumQuestions,
+      time: examTime,
+      difficulties: examDifficulties,
+      language: examLanguage,
+      negativeMarking: { enabled: examNegativeEnabled, penalty: examNegativePenalty },
+    });
+    setShowExamCustomizer(false);
+  };
+
   // SVG Gauge calculations
   const radius = 40;
   const strokeWidth = 8;
@@ -185,11 +288,8 @@ export default function SetupScreen({ onComplete, initialConfig }) {
           </div>
           <div className="nav-links">
             <span className="nav-link active">Home</span>
-            <span className="nav-link" onClick={() => {
-              const el = document.getElementById('history-section');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}>Simulations</span>
             <span className="nav-link" onClick={launchCustomTest}>Customizer</span>
+            <span className="nav-link highlight-link" onClick={launchExamCustomizer}>Practice Any Exam</span>
           </div>
         </div>
         <div className="nav-right">
@@ -242,17 +342,14 @@ export default function SetupScreen({ onComplete, initialConfig }) {
                 <span className="gradient-text">Score Higher.</span>
               </h1>
               <p className="hero-desc">
-                Prepare for TCS NQT, Infosys SP/DSE, and other top IT recruitment exams with real-time adaptive simulations and comprehensive performance diagnostics.
+                Prepare for TCS NQT, Infosys SP/DSE, SSC, UPSC, and other top recruitment & competitive exams with real-time adaptive simulations.
               </p>
               <div className="hero-actions">
                 <button className="btn btn-primary" onClick={launchCustomTest}>
                   Start Test →
                 </button>
-                <button className="btn btn-secondary" onClick={() => {
-                  const el = document.getElementById('history-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}>
-                  View History
+                <button className="btn btn-secondary" onClick={launchExamCustomizer}>
+                  Practice Any Exam →
                 </button>
               </div>
             </div>
@@ -306,51 +403,6 @@ export default function SetupScreen({ onComplete, initialConfig }) {
               </div>
             </div>
           </div>
-
-          {/* Simulation History list */}
-          <div className="dashboard-section" id="history-section">
-            <div className="section-header-row">
-              <h2>Recent Simulations</h2>
-              {history.length > 0 && (
-                <button className="clear-btn" onClick={clearHistory}>
-                  Clear History
-                </button>
-              )}
-            </div>
-
-            {history.length === 0 ? (
-              <div className="simulation-empty">
-                No past simulations logged. Pick a test parameters configuration to start.
-              </div>
-            ) : (
-              <div className="simulation-list">
-                {history
-                  .slice()
-                  .reverse()
-                  .map((h, i) => (
-                    <div className="sim-row-card" key={i}>
-                      <div className="sim-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                          <polyline points="2 17 12 22 22 17" />
-                        </svg>
-                      </div>
-                      <div className="sim-details">
-                        <div className="sim-topics" title={h.topics}>{h.topics}</div>
-                        <div className="sim-meta">{h.total} Questions • {h.timeTaken}</div>
-                      </div>
-                      <div className="sim-results">
-                        <div className="sim-score-pct" style={{ color: h.percent >= 60 ? 'var(--success)' : h.percent >= 40 ? 'var(--warning)' : 'var(--danger)' }}>
-                          {h.percent}%
-                        </div>
-                        <div className="sim-raw">{h.correct}/{h.total} correct</div>
-                      </div>
-                      <div className="sim-date">{formatDate(h.date)}</div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Right Side: Quick start preset cards & performance analytics */}
@@ -384,6 +436,15 @@ export default function SetupScreen({ onComplete, initialConfig }) {
                 <div className="preset-info">
                   <h4>Custom Parameters</h4>
                   <p>Define topics, counts, time, and marking</p>
+                </div>
+                <span className="arrow">›</span>
+              </div>
+
+              <div className="preset-card" onClick={launchExamCustomizer}>
+                <div className="preset-icon orange-bg">E</div>
+                <div className="preset-info">
+                  <h4>Practice Any Exam</h4>
+                  <p>SSC, UPSC, GATE, Wipro, or any custom exam</p>
                 </div>
                 <span className="arrow">›</span>
               </div>
@@ -624,6 +685,219 @@ export default function SetupScreen({ onComplete, initialConfig }) {
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowConfig(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleSubmit}>Configure Simulation Prompt →</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExamCustomizer && (
+        <div className="modal-overlay" onClick={() => setShowExamCustomizer(false)}>
+          <div className="modal-card exam-customizer-modal fade-up" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Practice Any Exam</h3>
+              <button className="close-modal" onClick={() => setShowExamCustomizer(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              {/* Exam Name */}
+              <div className="form-group">
+                <label className="form-label">Exam Name</label>
+                <input
+                  type="text"
+                  className="form-input exam-search-input"
+                  placeholder="Search or type exam name..."
+                  value={examSearch}
+                  onChange={(e) => {
+                    setExamSearch(e.target.value);
+                    setExamName(e.target.value);
+                  }}
+                />
+                {examName && (
+                  <div className="exam-selected-badge">
+                    <span className="exam-chip">{examName}</span>
+                    <span className="remove" onClick={() => { setExamName(''); setExamSearch(''); }}>×</span>
+                  </div>
+                )}
+                <div className="exam-suggestions">
+                  {Object.entries(filteredExams).map(([category, exams]) => (
+                    <div key={category} className="exam-category">
+                      <span className="exam-category-title">{category}</span>
+                      <div className="exam-options">
+                        {exams.map((e) => (
+                          <span
+                            key={e}
+                            className={`exam-option ${examName === e ? 'selected' : ''}`}
+                            onClick={() => selectExamPreset(e)}
+                          >
+                            {e}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Subject or Topic Toggle */}
+              <div className="form-group">
+                <label className="form-label">What do you want to practice?</label>
+                <div className="subject-topic-toggle">
+                  <button
+                    className={`toggle-btn ${subjectOrTopic === 'subject' ? 'active' : ''}`}
+                    onClick={() => setSubjectOrTopic('subject')}
+                  >
+                    Full Subject
+                  </button>
+                  <button
+                    className={`toggle-btn ${subjectOrTopic === 'topic' ? 'active' : ''}`}
+                    onClick={() => setSubjectOrTopic('topic')}
+                  >
+                    Specific Topic
+                  </button>
+                </div>
+              </div>
+
+              {/* Subject/Topic Names */}
+              <div className="form-group">
+                <label className="form-label">
+                  {subjectOrTopic === 'subject' ? 'Subject Names' : 'Topic Names'}
+                </label>
+                {examTopics.length > 0 && (
+                  <div className="topic-chips">
+                    {examTopics.map((t, i) => (
+                      <span className="topic-chip" key={i}>
+                        {t}
+                        <span className="remove" onClick={() => removeExamTopic(i)}>×</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="topic-input-row">
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder={subjectOrTopic === 'subject' ? 'e.g. Mathematics, English, GK...' : 'e.g. Profit & Loss, Syllogisms...'}
+                    value={examTopicInput}
+                    onChange={(e) => setExamTopicInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addExamTopic(); } }}
+                  />
+                  <button className="btn btn-secondary btn-sm" onClick={addExamTopic}>+ Add</button>
+                </div>
+              </div>
+
+              {/* Questions & Time */}
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Questions</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="1"
+                    max="200"
+                    value={examNumQuestions}
+                    onChange={(e) => setExamNumQuestions(parseInt(e.target.value) || 0)}
+                    placeholder="30"
+                  />
+                  <div className="preset-chips">
+                    {[10, 20, 30, 50].map((n) => (
+                      <span
+                        key={n}
+                        className={`preset-chip ${examNumQuestions === n ? 'active' : ''}`}
+                        onClick={() => setExamNumQuestions(n)}
+                      >{n}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Duration (Min)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="1"
+                    max="300"
+                    value={examTime}
+                    onChange={(e) => setExamTime(parseInt(e.target.value) || 0)}
+                    placeholder="30"
+                  />
+                  <div className="preset-chips">
+                    {[15, 30, 45, 60].map((t) => (
+                      <span
+                        key={t}
+                        className={`preset-chip ${examTime === t ? 'active' : ''}`}
+                        onClick={() => setExamTime(t)}
+                      >{t}m</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Difficulty */}
+              <div className="form-group">
+                <label className="form-label">Target Difficulty</label>
+                <div className="diff-group">
+                  {DIFFICULTIES.map((d) => (
+                    <label
+                      className={`diff-chip ${examDifficulties.includes(d.key) ? 'selected' : ''}`}
+                      key={d.key}
+                      onClick={() => toggleExamDiff(d.key)}
+                    >
+                      <span className="dot" style={{ background: d.color }}></span>
+                      {d.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Language Selector */}
+              <div className="form-group">
+                <label className="form-label">Question Language</label>
+                <div className="diff-group">
+                  {[
+                    { key: 'english', label: 'English' },
+                    { key: 'hindi', label: 'Hindi (हिंदी)' },
+                    { key: 'bilingual', label: 'Bilingual (English + Hindi)' },
+                  ].map((l) => (
+                    <label
+                      className={`diff-chip ${examLanguage === l.key ? 'selected' : ''}`}
+                      key={l.key}
+                      onClick={() => setExamLanguage(l.key)}
+                    >
+                      {l.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Negative Marking */}
+              <div className="form-group">
+                <label className="form-label">Negative Evaluation</label>
+                <div className="negative-marking-row">
+                  <label className="toggle-switch">
+                    <input
+                      type="checkbox"
+                      checked={examNegativeEnabled}
+                      onChange={(e) => setExamNegativeEnabled(e.target.checked)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
+                  <span className="toggle-label">{examNegativeEnabled ? 'Active' : 'Inactive'}</span>
+                  {examNegativeEnabled && (
+                    <select
+                      className="penalty-select"
+                      value={examNegativePenalty}
+                      onChange={(e) => setExamNegativePenalty(parseFloat(e.target.value))}
+                    >
+                      <option value={0.25}>-0.25 per incorrect</option>
+                      <option value={0.33}>-0.33 per incorrect</option>
+                      <option value={0.5}>-0.50 per incorrect</option>
+                      <option value={1}>-1.00 per incorrect</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowExamCustomizer(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleExamSubmit}>Generate Exam Prompt →</button>
             </div>
           </div>
         </div>
