@@ -123,6 +123,58 @@
   letter-spacing: 0.3px;
 }
 
+/* ─── Compact Timer Pause Button ─── */
+.btn-pause-timer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-left: 0.35rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-pause-timer:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-pause-timer.paused {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: var(--warning);
+  color: var(--warning);
+  animation: pulse 1.5s infinite alternate;
+}
+
+.pause-overlay {
+  backdrop-filter: blur(12px) !important;
+  background: rgba(7, 9, 14, 0.85) !important;
+}
+
+.pause-modal-card {
+  text-align: center;
+  max-width: 380px !important;
+}
+
+.pause-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: var(--warning);
+  margin-bottom: 1rem;
+}
+
 .quiz-timer.warning .timer-val,
 .quiz-timer.warning .timer-icon {
   color: var(--warning);

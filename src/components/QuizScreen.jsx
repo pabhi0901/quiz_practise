@@ -25,6 +25,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
   const [submitted, setSubmitted] = useState(false);
   const [topicFilter, setTopicFilter] = useState('all');
   const [showLegend, setShowLegend] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Highlight code snippets when current question changes
   useEffect(() => {
@@ -34,6 +35,19 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
   // Time per question tracking
   const timePerQ = useRef(new Array(questions.length).fill(0));
   const lastTimestamp = useRef(Date.now());
+
+  const togglePause = () => {
+    setIsPaused((prev) => {
+      if (!prev) {
+        const now = Date.now();
+        const elapsed = (now - lastTimestamp.current) / 1000;
+        timePerQ.current[currentQ] += elapsed;
+      } else {
+        lastTimestamp.current = Date.now();
+      }
+      return !prev;
+    });
+  };
 
   // Get unique topics for filter
   const uniqueTopics = useMemo(() => {
@@ -56,7 +70,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
 
   // Timer
   useEffect(() => {
-    if (submitted) return;
+    if (submitted || isPaused) return;
     if (timeLeft <= 0) return;
 
     const interval = setInterval(() => {
@@ -69,7 +83,7 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [submitted]);
+  }, [submitted, isPaused, timeLeft]);
 
   // Auto-submit on time up
   useEffect(() => {
@@ -281,8 +295,24 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
             </svg>
             <div className="timer-display">
               <span className="timer-val">{formatTime(timeLeft)}</span>
-              <span className="timer-lbl">Time Left</span>
+              <span className="timer-lbl">{isPaused ? 'Paused' : 'Time Left'}</span>
             </div>
+            <button
+              className={`btn-pause-timer ${isPaused ? 'paused' : ''}`}
+              onClick={togglePause}
+              title={isPaused ? 'Resume Test' : 'Pause Test'}
+            >
+              {isPaused ? (
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16" rx="1" />
+                  <rect x="14" y="4" width="4" height="16" rx="1" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
 
@@ -514,6 +544,27 @@ export default function QuizScreen({ questions, timeMinutes, onSubmit }) {
           </div>
         </div>
       </div>
+
+      {/* Test Paused Overlay */}
+      {isPaused && (
+        <div className="modal-overlay pause-overlay" onClick={togglePause}>
+          <div className="modal-box pause-modal-card fade-up" onClick={(e) => e.stopPropagation()}>
+            <div className="pause-icon-badge">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16" rx="1" />
+                <rect x="14" y="4" width="4" height="16" rx="1" />
+              </svg>
+            </div>
+            <h3>Test Paused</h3>
+            <p className="modal-desc">Your timer and question progress are on hold. Take a short break!</p>
+            <div className="modal-actions">
+              <button className="btn btn-primary" onClick={togglePause}>
+                ▶ Resume Test
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Submit Confirmation Modal */}
       {showModal && (
